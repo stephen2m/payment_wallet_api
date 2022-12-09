@@ -1,0 +1,44 @@
+version: '3.8'
+
+x-api-environment:
+  environment: &environment_variables
+    - DJANGO_SECRET_KEY=s27v36fgker783d7w9kg
+    - DJANGO_SETTINGS_MODULE=api.config
+    - DJANGO_CONFIGURATION=Local
+    - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/epayment_wallet_api
+  build: &build_settings
+    context: ./
+    dockerfile: Dockerfile
+  volumes: &volume_values
+    - './:/code'
+  depends_on: &depends_containers
+    - postgres
+  links: &links_containers
+    - 'postgres:postgres'
+
+services:
+  postgres:
+    image: 'postgres:14.4-alpine'
+    restart: on-failure
+    environment:
+      POSTGRES_USER: '${POSTGRES_USER:-postgres}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-changeme}'
+      POSTGRES_DB: '${POSTGRES_DB:-epayment_wallet_api}'
+      PGDATA: /data/postgres
+    volumes:
+      - 'postgres:/data/postgres'
+    ports:
+      - '5433:5432'
+  api:
+    restart: always
+    environment: *environment_variables
+    build: *build_settings
+    volumes: *volume_values
+    depends_on: *depends_containers
+    links: *links_containers
+    command: python manage.py runserver 0.0.0.0:8000 --nostatic
+
+    ports:
+      - '8000:8000'
+volumes:
+  postgres:
