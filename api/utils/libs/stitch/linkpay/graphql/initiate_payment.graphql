@@ -1,0 +1,16 @@
+mutation userInitiatePayment ($input: UserInitiatePaymentInput!) {
+    userInitiatePayment (input: $input) {
+        paymentInitiation {
+            id
+            date
+            amount
+            beneficiary {
+                ... on BankBeneficiary {
+                    name
+                    bankId
+                    bankAccountNumber
+                }
+            }
+        }
+    }
+}

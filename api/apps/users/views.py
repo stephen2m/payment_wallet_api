@@ -12,9 +12,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.throttling.UserLoginRateThrottle import UserLoginRateThrottle
 from api.utils.permissions import IsActiveAdminUser, IsOwner, IsActiveUser, IsAuthenticatedUser
-from .models import User
-from .serializers import CreateUserSerializer, UserSerializer, UserUpdateSerializer
-from ..wallets.models import Wallet
+from api.apps.users.models import User
+from api.apps.users.serializers import CreateUserSerializer, UserSerializer, UserUpdateSerializer
+from api.apps.payments.models.wallet import Wallet
 
 
 class UserLoginView(APIView):
@@ -32,7 +32,7 @@ class UserLoginView(APIView):
             response = {
                 'user': user.json(),
                 'wallet': {
-                    'balance': f'{wallet.current_balance}',
+                    'balance': f'{wallet.amount}',
                     'last_activity': f'{wallet.modified}'
                 },
                 'tokens': {
@@ -83,11 +83,13 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
         if self.request.method == 'PUT':
             return UserUpdateSerializer
 
-    def get_permission_classes(self):
+    def get_permissions(self):
         if self.request.method == 'GET':
-            return (IsActiveAdminUser, IsAuthenticatedUser,)
+            permission_classes = [IsActiveAdminUser, IsAuthenticatedUser, ]
         if self.request.method == 'PUT':
-            return (IsActiveAdminUser, IsOwner,)
+            permission_classes = [IsActiveAdminUser, IsOwner, ]
+
+        return [permission() for permission in permission_classes]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

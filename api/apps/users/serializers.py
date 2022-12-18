@@ -1,9 +1,10 @@
+from django.db import transaction
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import User
-from ..wallets.models import Wallet
+from ..payments.models.wallet import Wallet
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -18,9 +19,11 @@ class CreateUserSerializer(serializers.ModelSerializer[User]):
     def create(self, validated_data):
         # call create_user on user object. Without this
         # the password will be stored in plain text.
-        user = User.objects.create_user(**validated_data)
-        Wallet.objects.create(user=user)
-        return user
+        with transaction.atomic():
+            user = User.objects.create_user(**validated_data)
+            Wallet.objects.create(user=user)
+
+            return user
 
     class Meta:
         model = User

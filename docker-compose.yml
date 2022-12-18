@@ -5,7 +5,17 @@ x-api-environment:
     - DJANGO_SECRET_KEY=s27v36fgker783d7w9kg
     - DJANGO_SETTINGS_MODULE=api.config
     - DJANGO_CONFIGURATION=Local
-    - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/epayment_wallet_api
+    - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/payment_wallet_api
+    - REDIS_URL=redis://redis/0
+    - LINKPAY_REDIRECT_URI=http://localhost:8000/payments/linkpay/return
+    - FIELD_ENCRYPTION_KEY
+    - STITCH_CLIENT_ID
+    - STITCH_CLIENT_SECRET
+    - STITCH_BENEFICIARY_BANK_ID=absa
+    - STITCH_BENEFICIARY_ACCOUNT_NAME='Sample Account'
+    - STITCH_BENEFICIARY_ACCOUNT_NUMBER=1234567890
+    - STITCH_BENEFICIARY_ACCOUNT_TYPE=current
+    - STITCH_BENEFICIARY_TYPE=private
   build: &build_settings
     context: ./
     dockerfile: Dockerfile
@@ -13,8 +23,10 @@ x-api-environment:
     - './:/code'
   depends_on: &depends_containers
     - postgres
+    - redis
   links: &links_containers
-    - 'postgres:postgres'
+    - postgres
+    - redis
 
 services:
   postgres:
@@ -23,7 +35,7 @@ services:
     environment:
       POSTGRES_USER: '${POSTGRES_USER:-postgres}'
       POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-changeme}'
-      POSTGRES_DB: '${POSTGRES_DB:-epayment_wallet_api}'
+      POSTGRES_DB: '${POSTGRES_DB:-payment_wallet_api}'
       PGDATA: /data/postgres
     volumes:
       - 'postgres:/data/postgres'
@@ -36,9 +48,17 @@ services:
     volumes: *volume_values
     depends_on: *depends_containers
     links: *links_containers
-    command: python manage.py runserver 0.0.0.0:8000 --nostatic
+    command: scripts/run_api.sh
 
     ports:
       - '8000:8000'
+  redis:
+    image: redis:4-alpine
+    restart: always
+    volumes:
+      - 'redis:/data'
+    ports:
+      - "6380:6379"
 volumes:
   postgres:
+  redis:

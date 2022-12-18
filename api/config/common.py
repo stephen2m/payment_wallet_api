@@ -4,11 +4,11 @@ from os.path import join
 from distutils.util import strtobool
 import dj_database_url
 from configurations import Configuration
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Common(Configuration):
-
     INSTALLED_APPS = (
         'django.contrib.admin',
         'django.contrib.auth',
@@ -19,10 +19,12 @@ class Common(Configuration):
 
         # Third party apps
         'rest_framework',
+        'djmoney',
+        'encrypted_fields',
 
         # Our apps
         'api.apps.users',
-        'api.apps.wallets'
+        'api.apps.payments'
     )
 
     # https://docs.djangoproject.com/en/2.0/topics/http/middleware/
@@ -52,9 +54,10 @@ class Common(Configuration):
     DATABASES = {
         'default': dj_database_url.config(
             default='postgres://postgres:@postgres:5432/postgres',
-            conn_max_age=int(os.getenv('POSTGRES_CONN_MAX_AGE', 600))
+            conn_max_age=int(os.getenv('POSTGRES_CONN_MAX_AGE', 600)),
         )
     }
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
 
     # General
     APPEND_SLASH = False
@@ -183,15 +186,14 @@ class Common(Configuration):
     AUTH_USER_MODEL = 'users.User'
 
     # Django Rest Framework
-    # Django Rest Framework
+    # https://api.postman.com/collections/21819683-c38a83fd-d526-4ef6-a07e-1e82f038fe33?access_key=PMAT-01GMJ9R3PTZ40K77XP0Y4MXVWZ
     REST_FRAMEWORK = {
         'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
         'PAGE_SIZE': int(os.getenv('DJANGO_PAGINATION_LIMIT', 25)),
         'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S%z',
-        'DEFAULT_RENDERER_CLASSES': (
-            'rest_framework.renderers.JSONRenderer',
-            'rest_framework.renderers.BrowsableAPIRenderer',
-        ),
+        'DEFAULT_RENDERER_CLASSES': [
+            'rest_framework.renderers.JSONRenderer'
+        ],
         'DEFAULT_PERMISSION_CLASSES': [
             'rest_framework.permissions.IsAuthenticated',
         ],
@@ -217,6 +219,28 @@ class Common(Configuration):
         'REFRESH_TOKEN_LIFETIME': timedelta(seconds=31557600),
     }
 
+    # Redis Settings
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.getenv('REDIS_URL'),
+        }
+    }
+
+    # Django Searchable Encrypted Fields
+    # https://pypi.org/project/django-searchable-encrypted-fields/
+    FIELD_ENCRYPTION_KEYS = [
+        os.getenv('FIELD_ENCRYPTION_KEY')
+    ]
+
     # Stitch Config
+    LINKPAY_REDIRECT_URI = os.getenv('LINKPAY_REDIRECT_URI')
     STITCH_CLIENT_ID = os.getenv('STITCH_CLIENT_ID')
     STITCH_CLIENT_SECRET = os.getenv('STITCH_CLIENT_SECRET')
+    STITCH_BENEFICIARY_ACCOUNT = {
+        'bankId': os.getenv('STITCH_BENEFICIARY_BANK_ID'),
+        'name': os.getenv('STITCH_BENEFICIARY_ACCOUNT_NAME'),
+        'accountNumber': os.getenv('STITCH_BENEFICIARY_ACCOUNT_NUMBER'),
+        'accountType': os.getenv('STITCH_BENEFICIARY_ACCOUNT_TYPE'),
+        'beneficiaryType': os.getenv('STITCH_BENEFICIARY_TYPE'),
+    }

@@ -1,0 +1,5 @@
+mutation clientPaymentAuthorizationRequestCreate ($input: ClientPaymentAuthorizationRequestCreateInput!) {
+    clientPaymentAuthorizationRequestCreate (input: $input) {
+        authorizationRequestUrl
+    }
+}

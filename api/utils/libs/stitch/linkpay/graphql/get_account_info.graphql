@@ -1,0 +1,31 @@
+query GetLinkedAccountAndIdentityInfo {
+    user {
+        paymentAuthorization {
+            bankAccount {
+                id
+                name
+                accountNumber
+                accountType
+                bankId
+                accountHolder {
+                    __typename
+                    ... on Individual {
+                        fullName
+                        identifyingDocument {
+                            ... on IdentityDocument {
+                                __typename
+                                country
+                                number
+                            }
+                            ... on Passport {
+                                __typename
+                                country
+                                number
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

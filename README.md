@@ -19,7 +19,7 @@ Start the dev server for local development:
 docker-compose up
 ```
 
-Create a superuser to enable you to get an auth token for any of the restricted endpoints:
+Create a superuser to enable you to perform any admin-level operations:
 
 ```bash
 docker-compose run --rm api python manage.py createsuperuser
@@ -62,10 +62,16 @@ To sync the database in another system just pull the latest changes and run the 
 
 ## Shell
 
-To open an interactive shell, run the following command
+To open an interactive Python shell, run the following command
 
 ```bash
-docker-compose run api python manage.py shell
+docker-compose run --rm api python manage.py shell
+```
+
+You can also drop into the Linux shell by running the following command
+
+```bash
+docker-compose run --rm api /bin/bash
 ```
 
 ## API Authentication
