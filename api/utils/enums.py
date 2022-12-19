@@ -10,3 +10,8 @@ class PaymentRequestStatus(enum.Enum):
     COMPLETE = 'complete'
     CLOSED = 'closed'
     FAILED = 'failed'
+
+
+class IdentificationType(enum.Enum):
+    PASSPORT = 'Passport Number'
+    ID = 'Identification Number'

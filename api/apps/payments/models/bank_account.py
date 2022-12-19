@@ -15,6 +15,7 @@ class BankAccount(TimeStampedModel, MoneyMixin, models.Model):
     account_name = fields.EncryptedCharField(max_length=100)
     account_type = models.CharField(max_length=100)
     account_number = fields.EncryptedCharField(max_length=100)
+    is_verified = models.BooleanField(default=False)
 
 
 class BankAccountToken(TimeStampedModel, UUIDModel, models.Model):

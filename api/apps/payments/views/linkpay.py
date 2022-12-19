@@ -1,3 +1,4 @@
+import json
 import logging
 import urllib.parse
 import uuid
@@ -11,6 +12,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER
 from rest_framework.views import APIView
 
 from api.apps.payments.serializers.linkpay import PaymentAuthorizationSerializer
+from api.apps.users.models import User
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.helpers import generate_code_verifier_challenge_pair
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
@@ -19,7 +21,33 @@ from api.utils.permissions import IsActiveUser
 logger = logging.getLogger(__name__)
 
 
-def validate_and_save_linked_user(user_token, user_id):
+def parse_json_recursively(json_object, target_key):
+    if type(json_object) is dict and json_object:
+        for key in json_object:
+            if key == target_key:
+                return json_object[key]
+            parse_json_recursively(json_object[key], target_key)
+    return ''
+
+
+def validate_and_save_linked_user(user_token: dict, user_id: str):
+    token_id, access_token, refresh_token = user_token.get('token_id'), user_token.get('access_token'), user_token.get('refresh_token')
+
+    try:
+        account_details = LinkPay(token=access_token).get_linked_account_identity()
+    except LinkPayError as e:
+        error = f'could not create fetch linked account identity: {str(e)}'
+        logger.error(error)
+        return
+    except Exception as e:
+        error = f'an unexpected error happened trying to fetch linked account identity: {str(e)}'
+        logger.error(error)
+        return
+
+    account_kyc = json.dumps(account_details)
+    # {"user": {"paymentAuthorization": {"bankAccount": {"id": "YWNjb3VudC9mbmIvMjUwNjU1LzYyMTIwMDk4OTg1", "name": "FNB Premier Cheque Account", "accountNumber": "62120098985", "accountType": "current", "bankId": "fnb", "accountHolder": {"__typename": "Individual", "fullName": "Johnny Clegg", "identifyingDocument": {"__typename": "IdentityDocument", "country": "ZA", "number": "5306075800082"}}}}}}
+    linked_user = User.objects.get(id=user_id)
+
     pass
 
 
@@ -138,6 +166,8 @@ class HandleRedirect(APIView):
 
             user_token = response.json()
             validate_and_save_linked_user(user_token, user_id)
+
+            print(f'user_token: {user_token}')
 
             return Response(
                 data={'success': f'Account successfully linked'},

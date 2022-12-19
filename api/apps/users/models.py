@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from model_utils.models import UUIDModel, TimeStampedModel
 
+from api.utils.enums import IdentificationType, enum_choices
 from api.utils.mixins.models import UserMixin
 
 
@@ -48,6 +49,8 @@ class User(PermissionsMixin, UUIDModel, TimeStampedModel, AbstractBaseUser):
     )
     full_name = models.CharField('full name', max_length=255)
     short_name = models.CharField('short name', max_length=100)
+    identification_type = models.CharField(max_length=25, choices=enum_choices(IdentificationType))
+    identification_number = models.CharField(max_length=15)
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
     last_login = models.DateTimeField(blank=True, null=True, editable=False)
