@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from encrypted_fields import fields
 
 from model_utils.models import UUIDModel, TimeStampedModel
 
@@ -50,7 +51,7 @@ class User(PermissionsMixin, UUIDModel, TimeStampedModel, AbstractBaseUser):
     full_name = models.CharField('full name', max_length=255)
     short_name = models.CharField('short name', max_length=100)
     identification_type = models.CharField(max_length=25, choices=enum_choices(IdentificationType))
-    identification_number = models.CharField(max_length=15)
+    identification_number = fields.EncryptedCharField(max_length=15)
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
     last_login = models.DateTimeField(blank=True, null=True, editable=False)

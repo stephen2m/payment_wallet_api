@@ -13,6 +13,13 @@ Backend API for a basic wallet management system.
 To speed up docker builds ensure [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds) is enabled.  
 For Linux you can set the `DOCKER_BUILDKIT=1` environment variable or add this to your `daemon.json` eg for Windows `"features": { "buildkit": true }`
 
+First step will be to build the API container.  To avoid having the Stitch client ID and secret in the docker compose file, you;ll need
+to pass those values as build arguments.
+
+```bash
+docker build --build-arg STITCH_CLIENT_ID="client-id-here" --build-arg STITCH_CLIENT_SECRET="client-secret-here" .
+```
+
 Start the dev server for local development:
 
 ```bash

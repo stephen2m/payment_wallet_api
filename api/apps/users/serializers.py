@@ -1,7 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from .models import User
 from ..payments.models.wallet import Wallet
@@ -27,7 +25,7 @@ class CreateUserSerializer(serializers.ModelSerializer[User]):
 
     class Meta:
         model = User
-        fields = ('email', 'full_name', 'short_name', 'password')
+        fields = ('email', 'full_name', 'short_name', 'password', 'identification_type', 'identification_number')
         extra_kwargs = {'password': {'write_only': True}}
 
 
@@ -35,16 +33,7 @@ class UserUpdateSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=100, required=False, allow_blank=True, allow_null=True)
     full_name = serializers.CharField(max_length=255)
     short_name = serializers.CharField(max_length=100)
-
-    def validate(self, data):
-        validated_data = super().validate(data)
-
-        if User.objects \
-                .exclude(Q(id=self.context['user_id']) | Q(email=None)) \
-                .filter(email=validated_data.get('email')).exists():
-            raise ValidationError(detail='User already enrolled under the specified email')
-
-        return validated_data
+    password = serializers.CharField(write_only=True)
 
     def update(self, *args, **kwargs):
         user = args[0]

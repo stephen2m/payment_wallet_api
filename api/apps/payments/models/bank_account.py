@@ -4,10 +4,8 @@ from django.db import models
 from encrypted_fields import fields
 from model_utils.models import TimeStampedModel, UUIDModel
 
-from api.utils.mixins.models import MoneyMixin
 
-
-class BankAccount(TimeStampedModel, MoneyMixin, models.Model):
+class BankAccount(TimeStampedModel, models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     bank_id = models.CharField(max_length=30)
     account_id = fields.EncryptedCharField(max_length=100)
@@ -15,10 +13,9 @@ class BankAccount(TimeStampedModel, MoneyMixin, models.Model):
     account_name = fields.EncryptedCharField(max_length=100)
     account_type = models.CharField(max_length=100)
     account_number = fields.EncryptedCharField(max_length=100)
-    is_verified = models.BooleanField(default=False)
 
 
 class BankAccountToken(TimeStampedModel, UUIDModel, models.Model):
-    account_id = models.OneToOneField(BankAccount, on_delete=models.PROTECT)
+    account = models.OneToOneField(BankAccount, on_delete=models.PROTECT)
     token_id = models.TextField()
     refresh_token = fields.EncryptedCharField(max_length=100)

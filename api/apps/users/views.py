@@ -85,9 +85,9 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            permission_classes = [IsActiveAdminUser, IsAuthenticatedUser, ]
+            permission_classes = (IsAuthenticatedUser, )
         if self.request.method == 'PUT':
-            permission_classes = [IsActiveAdminUser, IsOwner, ]
+            permission_classes = (IsOwner, )
 
         return [permission() for permission in permission_classes]
 
@@ -100,9 +100,12 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
         return context
 
     def patch(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.is_active = not instance.is_active
-        instance.modified_by = self.request.user
-        instance.save()
+        serializer = self.serializer_class(self.get_object(), data=request.data, partial=True)
+
+        if serializer.is_valid(raise_exception=True):
+            instance = self.get_object()
+            if 'password' in serializer.data:
+                instance.set_password(serializer.data['password'])
+            instance.save()
 
         return Response(UserSerializer(instance).data, status=HTTP_200_OK)

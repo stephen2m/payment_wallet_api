@@ -35,6 +35,8 @@ RUN poetry install --no-interaction --no-ansi -vvv
 
 # Adds our application code to the image
 COPY . $APP_HOME
-RUN chmod +x $APP_HOME/scripts/run_api.sh
+RUN chmod +x /code/scripts/run_api.sh
 
 EXPOSE $APP_PORT
+
+ENTRYPOINT ["/code/scripts/run_api.sh"]

@@ -7,8 +7,8 @@ x-api-environment:
     - DJANGO_CONFIGURATION=Local
     - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/payment_wallet_api
     - REDIS_URL=redis://redis/0
-    - LINKPAY_REDIRECT_URI=http://localhost:8000/payments/linkpay/return
-    - FIELD_ENCRYPTION_KEY
+    - LINKPAY_REDIRECT_URI=http://localhost:8080/return
+    - FIELD_ENCRYPTION_KEY=963bf31df7fc9eb73c1456095bd3c9c2220042546a4ce4ad6d8acf319e081b3c
     - STITCH_CLIENT_ID
     - STITCH_CLIENT_SECRET
     - STITCH_BENEFICIARY_BANK_ID=absa
@@ -49,7 +49,6 @@ services:
     depends_on: *depends_containers
     links: *links_containers
     command: scripts/run_api.sh
-
     ports:
       - '8000:8000'
   redis:
@@ -58,7 +57,7 @@ services:
     volumes:
       - 'redis:/data'
     ports:
-      - "6380:6379"
+      - '6380:6379'
 volumes:
   postgres:
   redis:
