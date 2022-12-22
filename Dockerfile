@@ -38,5 +38,3 @@ COPY . $APP_HOME
 RUN chmod +x /code/scripts/run_api.sh
 
 EXPOSE $APP_PORT
-
-ENTRYPOINT ["/code/scripts/run_api.sh"]

@@ -17,7 +17,7 @@ First step will be to build the API container.  To avoid having the Stitch clien
 to pass those values as build arguments.
 
 ```bash
-docker build --build-arg STITCH_CLIENT_ID="client-id-here" --build-arg STITCH_CLIENT_SECRET="client-secret-here" .
+docker build --build-arg STITCH_CLIENT_ID=$STITCH_CLIENT_ID --build-arg STITCH_CLIENT_SECRET=$STITCH_CLIENT_SECRET .
 ```
 
 Start the dev server for local development:

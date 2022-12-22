@@ -4,6 +4,9 @@ mutation userInitiatePayment ($input: UserInitiatePaymentInput!) {
             id
             date
             amount
+            status {
+                __typename
+            }
             beneficiary {
                 ... on BankBeneficiary {
                     name

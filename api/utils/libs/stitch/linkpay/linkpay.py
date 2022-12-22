@@ -60,5 +60,18 @@ class LinkPay(BaseAPI):
 
             raise err
 
+    def initiate_user_payment(self, payment_request: Dict) -> Union[Dict[str, Any], ExecutionResult]:
+        query_path = Path(__file__).parent.joinpath('graphql/initiate_payment.graphql')
+        graphql_query = self.load_qraphql_query(query_path)
 
+        try:
+            response = self.client.execute(graphql_query, variable_values=payment_request)
+            logger.debug(f'Payment initiated successfully')
+            return response
+        except TransportQueryError as err:
+            logger.error(err.errors[0]['message'])
+            raise LinkPayError(err.errors[0]['message'])
+        except asyncio.exceptions.TimeoutError as err:
+            logger.error(err)
 
+            raise err

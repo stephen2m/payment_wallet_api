@@ -55,4 +55,27 @@ class BaseAPI(object):
             logger.error(f'Error making client generate call to {CLIENT_TOKEN_ENDPOINT} {err}')
             raise SystemExit(err)
 
-        return response.json().get('access_token')
+        return response.json()['access_token']
+
+    def rehydrate_user_credentials(self, refresh_token: str) -> dict:
+        payload = {
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': f'{refresh_token}'
+
+        }
+
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        try:
+            response = requests.post(CLIENT_TOKEN_ENDPOINT, data=payload, headers=headers)
+            response.raise_for_status()
+            logger.debug('User token refreshed')
+        except requests.exceptions.RequestException as err:
+            logger.error(f'Error making client generate call to {CLIENT_TOKEN_ENDPOINT} {err}')
+            raise SystemExit(err)
+
+        return response.json()

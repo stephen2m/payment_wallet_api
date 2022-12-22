@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from rest_framework.views import APIView
@@ -27,7 +28,7 @@ def fetch_linked_account_details(access_token: str) -> dict:
 
         return account_details['user']['paymentAuthorization']['bankAccount']
     except LinkPayError as e:
-        error = f'could not create fetch linked account identity: {str(e)}'
+        error = f'could not fetch linked account identity: {str(e)}'
         logger.error(error)
 
         return {}
@@ -53,9 +54,10 @@ def save_linked_account_details(user: User, account_details: dict, user_token: d
         )
         account.save()
         BankAccountToken(
-            account_id=account,
+            account=account,
             token_id=user_token['id_token'],
-            refresh_token=user_token['refresh_token']
+            refresh_token=user_token['refresh_token'],
+            refresh_token_expiry=timezone.now() + timezone.timedelta(days=365)
         ).save()
 
         return account.account_id
@@ -81,8 +83,8 @@ class CreatePaymentAuthorizationView(APIView):
                         }
                     },
                     'payer': {
-                        'name': serialized_data.data['full_name'],
-                        'email': serialized_data.data['email'],
+                        'name': serialized_data.validated_data['full_name'],
+                        'email': serialized_data.validated_data['email'],
                         'reference': 'TestPayerRef'
                     }
                 }
@@ -137,8 +139,8 @@ class VerifyAndLinkUserAccount(APIView):
         serialized_data = FetchUserTokenSerializer(data=request.data)
 
         if serialized_data.is_valid(raise_exception=True):
-            authorization_code = serialized_data.data['code']
-            state = serialized_data.data['state']
+            authorization_code = serialized_data.validated_data['code']
+            state = serialized_data.validated_data['state']
 
             url = 'https://secure.stitch.money/connect/token'
             previous_state = cache.get(state)

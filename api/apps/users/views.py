@@ -1,24 +1,21 @@
-import json
-
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import update_last_login
-from django.http import HttpResponse
 from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, get_object_or_404, CreateAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from api.apps.payments.models import Wallet
 from api.throttling.UserLoginRateThrottle import UserLoginRateThrottle
-from api.utils.permissions import IsActiveAdminUser, IsOwner, IsActiveUser, IsAuthenticatedUser
+from api.utils.permissions import IsActiveAdminUser, IsOwner, IsNotAuthenticated
 from api.apps.users.models import User
 from api.apps.users.serializers import CreateUserSerializer, UserSerializer, UserUpdateSerializer
-from api.apps.payments.models.wallet import Wallet
 
 
 class UserLoginView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsNotAuthenticated,)
     throttle_classes = (UserLoginRateThrottle,)
 
     def post(self, request):
@@ -42,7 +39,7 @@ class UserLoginView(APIView):
             }
 
             update_last_login(None, user)
-            return HttpResponse(json.dumps(response), content_type='application/json')
+            return Response(data=response, content_type='application/json')
 
         error = 'Your user account has been deactivated.' if user else 'Invalid Credentials'
         return Response(data={'error': error}, status=HTTP_400_BAD_REQUEST)
@@ -85,7 +82,7 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            permission_classes = (IsAuthenticatedUser, )
+            permission_classes = (IsAuthenticated, )
         if self.request.method == 'PUT':
             permission_classes = (IsOwner, )
 
