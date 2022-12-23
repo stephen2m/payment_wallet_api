@@ -159,6 +159,14 @@ search = ["dj-search-url"]
 testing = ["django-cache-url (>=1.0.0)", "dj-database-url", "dj-email-url", "dj-search-url"]
 
 [[package]]
+name = "django-fsm"
+version = "2.8.1"
+description = "Django friendly finite state machine support."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "django-model-utils"
 version = "4.3.1"
 description = "Django model mixins and utilities"
@@ -762,7 +770,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "f8d09c76e57c2b6f64ad10a514b198c70563a1bc73375dafab6145fad653ba48"
+content-hash = "c98f8d27eeb4835ea58bc724978a8f027ecdcb8a9754120b85705348b60e59ea"
 
 [metadata.files]
 appnope = []
@@ -780,6 +788,7 @@ decorator = []
 dj-database-url = []
 django = []
 django-configurations = []
+django-fsm = []
 django-model-utils = []
 django-money = []
 django-nose = []

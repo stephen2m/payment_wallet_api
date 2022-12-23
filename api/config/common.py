@@ -204,10 +204,6 @@ class Common(Configuration):
         'DEFAULT_THROTTLE_CLASSES': [
             'rest_framework.throttling.AnonRateThrottle',
         ],
-        'DEFAULT_THROTTLE_RATES': {
-            'anon': '20/day',
-            'loginAttempts': '10/hour',
-        },
         'TEST_REQUEST_DEFAULT_FORMAT': 'json',
         'EXCEPTION_HANDLER': 'api.utils.exceptions.drf.core_exception_handler',
         'NON_FIELD_ERRORS_KEY': 'error',

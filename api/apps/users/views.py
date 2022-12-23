@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.apps.payments.models import Wallet
-from api.throttling.UserLoginRateThrottle import UserLoginRateThrottle
 from api.utils.permissions import IsActiveAdminUser, IsOwner, IsNotAuthenticated
 from api.apps.users.models import User
 from api.apps.users.serializers import CreateUserSerializer, UserSerializer, UserUpdateSerializer
@@ -16,7 +15,6 @@ from api.apps.users.serializers import CreateUserSerializer, UserSerializer, Use
 
 class UserLoginView(APIView):
     permission_classes = (IsNotAuthenticated,)
-    throttle_classes = (UserLoginRateThrottle,)
 
     def post(self, request):
         email = request.data.get('email')

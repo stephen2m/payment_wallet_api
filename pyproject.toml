@@ -20,6 +20,7 @@ django-searchable-encrypted-fields = "^0.2.1"
 requests = "^2.28.1"
 gql = {version = "^3.4.0", extras = ["requests"]}
 redis = "^4.4.0"
+django-fsm = "^2.8.1"
 
 [tool.poetry.dev-dependencies]
 ipdb = "0.13.11"
