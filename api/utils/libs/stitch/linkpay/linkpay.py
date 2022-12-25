@@ -68,8 +68,11 @@ class LinkPay(BaseAPI):
             logger.debug(f'Payment initiated successfully')
             return response
         except TransportQueryError as err:
+            error_detail = err.errors[0]['message']
+            error_code = err.errors[0].get('extensions', {}).get('code')
             logger.error(err.errors[0]['message'])
-            raise LinkPayError(err.errors[0]['message'])
+
+            raise LinkPayError(detail=error_detail, code=error_code, extras=err.errors[0].get('extensions', {}))
         except asyncio.exceptions.TimeoutError as err:
             logger.error(err)
 

@@ -8,6 +8,7 @@ x-api-environment:
     - DATABASE_URL=postgresql://postgres:changeme@postgres:5432/payment_wallet_api
     - REDIS_URL=redis://redis/0
     - LINKPAY_REDIRECT_URI=http://localhost:8080/return
+    - LINKPAY_USER_INTERACTION_URI=http://localhost:8080/return
     - FIELD_ENCRYPTION_KEY=963bf31df7fc9eb73c1456095bd3c9c2220042546a4ce4ad6d8acf319e081b3c
     - STITCH_CLIENT_ID
     - STITCH_CLIENT_SECRET

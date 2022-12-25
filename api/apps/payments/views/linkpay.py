@@ -43,7 +43,7 @@ def save_linked_account_details(user: User, account_details: dict, user_token: d
     account_holder = account_details['accountHolder']
 
     with transaction.atomic():
-        account = BankAccount(
+        account = BankAccount.objects.create(
             user_id=user.id,
             bank_id=account_details['bankId'],
             account_id=account_details['id'],
@@ -52,13 +52,11 @@ def save_linked_account_details(user: User, account_details: dict, user_token: d
             account_type=account_details['accountType'],
             account_number=account_details['accountNumber'],
         )
-        account.save()
-        BankAccountToken(
+        BankAccountToken.objects.create(
             account=account,
             token_id=user_token['id_token'],
-            refresh_token=user_token['refresh_token'],
-            refresh_token_expiry=timezone.now() + timezone.timedelta(days=365)
-        ).save()
+            refresh_token=user_token['refresh_token']
+        )
 
         return account.account_id
 

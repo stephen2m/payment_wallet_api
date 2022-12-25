@@ -1,22 +1,30 @@
-class InstantPayError(Exception):
+from rest_framework.exceptions import APIException
+
+
+class InstantPayError(APIException):
     pass
 
 
-class PaymentRequestStatusError(Exception):
+class PaymentRequestStatusError(APIException):
     pass
 
 
-class StitchConfigurationIncomplete(Exception):
+class StitchConfigurationIncomplete(APIException):
     pass
 
 
-class StitchClientAuthenticationError(Exception):
+class StitchClientAuthenticationError(APIException):
     pass
 
 
-class BankAccountVerificationError(Exception):
+class BankAccountVerificationError(APIException):
     pass
 
 
-class LinkPayError(Exception):
-    pass
+class LinkPayError(APIException):
+    def __init__(self, detail=None, code=None, extras=None):
+        super().__init__(detail, code)
+
+        if extras is None:
+            extras = {}
+        self.extras = extras

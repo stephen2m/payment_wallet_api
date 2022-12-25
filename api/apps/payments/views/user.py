@@ -14,7 +14,7 @@ class FetchUserLinkedAccounts(RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         linked_accounts = BankAccount.objects\
             .filter(user=request.user)\
-            .values('bank_id', 'name', 'account_id', 'account_name', 'account_type', 'account_number', 'created')
+            .values('bank_id', 'name', '_account_id_data', 'account_name', 'account_type', 'account_number', 'created')
 
         return Response(
             data=list(linked_accounts),
