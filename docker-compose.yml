@@ -43,13 +43,13 @@ services:
     ports:
       - '5433:5432'
   api:
-    restart: always
+    restart: on-failure
     environment: *environment_variables
     build: *build_settings
     volumes: *volume_values
     depends_on: *depends_containers
     links: *links_containers
-    command: scripts/run_api.sh
+    command: docker/scripts/run_api.sh
     ports:
       - '8000:8000'
   redis:
@@ -59,6 +59,24 @@ services:
       - 'redis:/data'
     ports:
       - '6380:6379'
+  nginx:
+    restart: always
+    image: nginx:1.23-alpine
+    ports:
+      - '80:80'
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_files:/code/static
+  worker:
+    build: *build_settings
+    environment: *environment_variables
+    command: celery -A api worker --loglevel=info --concurrency 1 -E
+    depends_on:
+      - api
+      - postgres
+      - redis
+    restart: on-failure
 volumes:
   postgres:
   redis:
+  static_files:

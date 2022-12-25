@@ -5,7 +5,7 @@ import sys
 
 
 def main():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "epayment-wallet.config")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.config")
     os.environ.setdefault("DJANGO_CONFIGURATION", "Local")
 
     try:

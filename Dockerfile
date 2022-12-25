@@ -35,6 +35,7 @@ RUN poetry install --no-interaction --no-ansi -vvv
 
 # Adds our application code to the image
 COPY . $APP_HOME
-RUN chmod +x /code/scripts/run_api.sh
+RUN chmod +x /code/docker/scripts/run_api.sh
+RUN chmod +x /code/docker/scripts/run_celery_worker.sh
 
-EXPOSE $APP_PORT
+EXPOSE 80

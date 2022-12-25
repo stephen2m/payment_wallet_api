@@ -21,6 +21,8 @@ requests = "^2.28.1"
 gql = {version = "^3.4.0", extras = ["requests"]}
 redis = "^4.4.0"
 django-fsm = "^2.8.1"
+celery = {version = "^5.2.7", extras = ["redis"]}
+django-celery-beat = "^2.4.0"
 
 [tool.poetry.dev-dependencies]
 ipdb = "0.13.11"

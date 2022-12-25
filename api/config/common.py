@@ -229,6 +229,11 @@ class Common(Configuration):
         os.getenv('FIELD_ENCRYPTION_KEY')
     ]
 
+    # Celery config
+    CELERY_BROKER_URL = os.getenv('REDIS_URL')
+    CELERY_RESULT_BACKEND = os.getenv('REDIS_URL')
+    CELERY_IMPORTS = ('api.apps.payments.tasks',)
+
     # Stitch Config
     LINKPAY_REDIRECT_URI = os.getenv('LINKPAY_REDIRECT_URI')
     STITCH_CLIENT_ID = os.getenv('STITCH_CLIENT_ID')
