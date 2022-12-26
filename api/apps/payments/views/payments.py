@@ -2,6 +2,7 @@ import json
 import logging
 import uuid
 
+import structlog
 from django.conf import settings
 from django.db import transaction
 from django_fsm import TransitionNotAllowed
@@ -21,7 +22,7 @@ from api.utils.libs.stitch.linkpay.linkpay import LinkPay
 from api.utils.permissions import IsActiveUser
 from api.utils.webhook import get_signature_sections, calculate_hmac_signature, compare_signatures
 
-logger = logging.getLogger(__name__)
+log = structlog.get_logger('api_requests')
 
 
 class ProcessPaymentNotification(CreateAPIView):
@@ -29,9 +30,10 @@ class ProcessPaymentNotification(CreateAPIView):
 
     def post(self, request):
         stitch_signature_header = request.META.get('HTTP_X_STITCH_SIGNATURE', '')
+        logger = log.bind(event='webhook_processing', request_id=str(uuid.uuid4()))
 
         if not stitch_signature_header:
-            logger.error('Skipping processing of event. X-Stitch-Signature not found in request headers.')
+            logger.error(message='Skipping processing of event. X-Stitch-Signature not found in request headers.')
         else:
             payload = json.loads(request.data)
             parsed_signature = get_signature_sections(stitch_signature_header)
@@ -63,6 +65,7 @@ class InitiateWalletDeposit(CreateAPIView):
 
     def post(self, request):
         serialized_data = InitiateWalletDepositSerializer(data=request.data)
+        logger = log.bind(event='wallet_deposit_init', request_id=str(uuid.uuid4()))
 
         if serialized_data.is_valid(raise_exception=True):
             account_token = BankAccountToken.objects.get(
@@ -99,6 +102,8 @@ class InitiateWalletDeposit(CreateAPIView):
                 account_token.refresh_token = user_token['refresh_token']
                 account_token.save()
 
+                logger.debug(message='Token refreshed successfully')
+
                 payment_init = LinkPay(token=user_token['access_token']).initiate_user_payment(payment_request)
 
                 stitch_ref = payment_init.get('userInitiatePayment', {}) \
@@ -107,15 +112,18 @@ class InitiateWalletDeposit(CreateAPIView):
 
                 create_payment_request(payment_request, stitch_ref, request.user)
 
+                message = f'Deposit of {validated_amount} initiated successfully'
+
+                logger.info(stitch_ref=stitch_ref, message=message)
+
                 return Response(
-                    data={'success': f'Deposit of {validated_amount} initiated successfully'},
+                    data={'success': message},
                     content_type='application/json'
                 )
             except LinkPayError as e:
                 error_context = e.extras
                 if (e.get_codes()) == 'USER_INTERACTION_REQUIRED':
                     if error_context:
-                        logger.info(f'User interaction required for payment')
                         redirect_uri = settings.LINKPAY_USER_INTERACTION_URI
                         user_interaction_uri = error_context.get('userInteractionUrl')
                         response = {
@@ -123,6 +131,9 @@ class InitiateWalletDeposit(CreateAPIView):
                         }
 
                         stitch_ref = error_context.get('id', 'error-getting-ref')
+
+                        logger.info(stitch_ref=stitch_ref, message=e.get_full_details())
+
                         create_payment_request(payment_request, stitch_ref, request.user)
 
                         return Response(
@@ -130,13 +141,12 @@ class InitiateWalletDeposit(CreateAPIView):
                             content_type='application/json'
                         )
                     else:
-                        logger.error('Could not determine user integration URL from error message context')
+                        logger.error(message='Could not determine user integration URL from error message context')
 
-                error_prefix = 'Could not initiate your payment request.'
-                logger.error(f'{error_prefix}: {str(e)}')
+                logger.error(message=e)
 
                 return Response(
-                    data={'error': f'{error_prefix} Please try again.'},
+                    data={'error': f'Could not initiate your payment request. Please try again.'},
                     status=HTTP_400_BAD_REQUEST,
                     content_type='application/json'
                 )

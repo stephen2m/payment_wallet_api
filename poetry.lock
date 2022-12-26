@@ -302,6 +302,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "django-ipware"
+version = "4.0.2"
+description = "A Django application to retrieve user's IP address"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+
+[[package]]
 name = "django-model-utils"
 version = "4.3.1"
 description = "Django model mixins and utilities"
@@ -350,6 +358,22 @@ python-versions = "*"
 [package.dependencies]
 Django = ">=3.2"
 pycryptodome = ">=3.7.0"
+
+[[package]]
+name = "django-structlog"
+version = "4.0.1"
+description = "Structured Logging for Django"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+django = ">=3.2"
+django-ipware = "*"
+structlog = ">=21.4.0"
+
+[package.extras]
+celery = ["celery (>=5.1)"]
 
 [[package]]
 name = "django-timezone-field"
@@ -886,6 +910,20 @@ pure-eval = "*"
 tests = ["pytest", "typeguard", "pygments", "littleutils", "cython"]
 
 [[package]]
+name = "structlog"
+version = "22.3.0"
+description = "Structured Logging for Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+dev = ["structlog"]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-mermaid", "twisted"]
+tests = ["coverage", "freezegun (>=0.2.8)", "pretend", "pytest-asyncio (>=0.17)", "pytest (>=6.0)", "simplejson"]
+typing = ["mypy", "rich", "twisted"]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -967,7 +1005,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "71367de5adbaf14c53589cab338aa43fe807687f2a0734109ea082c7894cdaa8"
+content-hash = "1dd7735e2775f8d302d8909dad1105e456825b7ff7f2cb7a01db164faa573713"
 
 [metadata.files]
 amqp = []
@@ -994,10 +1032,12 @@ django = []
 django-celery-beat = []
 django-configurations = []
 django-fsm = []
+django-ipware = []
 django-model-utils = []
 django-money = []
 django-nose = []
 django-searchable-encrypted-fields = []
+django-structlog = []
 django-timezone-field = []
 djangorestframework = []
 djangorestframework-simplejwt = []
@@ -1040,6 +1080,7 @@ requests-toolbelt = []
 six = []
 sqlparse = []
 stack-data = []
+structlog = []
 tomli = []
 traitlets = []
 typing-extensions = []

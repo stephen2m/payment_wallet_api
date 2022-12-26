@@ -3,6 +3,7 @@ from datetime import timedelta
 from os.path import join
 from distutils.util import strtobool
 import dj_database_url
+import structlog
 from configurations import Configuration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -123,20 +124,40 @@ class Common(Configuration):
 
     DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_log_level,
+            structlog.processors.TimeStamper(fmt='iso'),
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(encoding='utf-8', errors='backslashreplace'),
+            structlog.processors.ExceptionPrettyPrinter(),
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        context_class=structlog.threadlocal.wrap_dict(dict),
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+    pre_chain = [
+        # Add the log level and a timestamp to the event_dict if the log entry
+        # is not from structlog.
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt='iso'),
+    ]
+
     # Logging
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': False,
         'formatters': {
-            'django.server': {
-                '()': 'django.utils.log.ServerFormatter',
-                'format': '[%(server_time)s] %(message)s',
-            },
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-            },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
+            'default': {
+                '()': structlog.stdlib.ProcessorFormatter,
+                'processor': structlog.processors.JSONRenderer(sort_keys=True),
+                'foreign_pre_chain': pre_chain,
             },
         },
         'filters': {
@@ -145,39 +166,17 @@ class Common(Configuration):
             },
         },
         'handlers': {
-            'django.server': {
-                'level': 'INFO',
+            'default': {
                 'class': 'logging.StreamHandler',
-                'formatter': 'django.server',
+                'formatter': 'default',
+                'level': 'INFO'
             },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'simple'
-            },
-            'mail_admins': {
-                'level': 'ERROR',
-                'class': 'django.utils.log.AdminEmailHandler'
-            }
         },
         'loggers': {
-            'django': {
-                'handlers': ['console'],
-                'propagate': True,
-            },
-            'django.server': {
-                'handlers': ['django.server'],
+            'api_requests': {
+                'handlers': ['default'],
                 'level': 'INFO',
-                'propagate': False,
-            },
-            'django.request': {
-                'handlers': ['mail_admins', 'console'],
-                'level': 'ERROR',
-                'propagate': False,
-            },
-            'django.db.backends': {
-                'handlers': ['console'],
-                'level': 'INFO'
+                'propagate': False
             },
         }
     }
