@@ -18,6 +18,7 @@ x-api-environment:
     - STITCH_BENEFICIARY_ACCOUNT_TYPE=current
     - STITCH_BENEFICIARY_TYPE=private
     - WEBHOOK_SECRET_KEY
+    - SENTRY_DSN
   build: &build_settings
     context: ./
     dockerfile: Dockerfile
