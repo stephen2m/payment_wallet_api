@@ -36,8 +36,9 @@ class ProcessPaymentNotification(CreateAPIView):
             logger.error(message='Skipping processing of event. X-Stitch-Signature not found in request headers.')
         else:
             payload = request.data
+            parsed_payload = json.dumps(payload, separators=(',', ':'))
             parsed_signature = get_signature_sections(stitch_signature_header)
-            hash_input = f'{parsed_signature["t"]}.{payload}'
+            hash_input = f'{parsed_signature["t"]}.{parsed_payload}'
 
             process_webhook_event.delay(stitch_signature_header, payload, hash_input)
 
