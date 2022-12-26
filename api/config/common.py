@@ -233,6 +233,15 @@ class Common(Configuration):
     CELERY_RESULT_BACKEND = os.getenv('REDIS_URL')
     CELERY_IMPORTS = ('api.apps.payments.tasks',)
 
+    # Sentry Config
+    SENTRY_DSN = os.getenv('SENTRY_DSN', None)
+    if SENTRY_DSN:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
+
+        sentry_sdk.init(SENTRY_DSN, integrations=[DjangoIntegration(), CeleryIntegration()])
+
     # Stitch Config
     LINKPAY_REDIRECT_URI = os.getenv('LINKPAY_REDIRECT_URI')
     LINKPAY_USER_INTERACTION_URI = os.getenv('LINKPAY_USER_INTERACTION_URI')
