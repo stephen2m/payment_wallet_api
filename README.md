@@ -39,7 +39,7 @@ docker-compose run --rm api [command]
 ```
 
 
-## Project Dependecies
+## Project Dependencies
 
 This project uses poetry to manage any Python packages required at runtime.  To add any new packages, you
 
@@ -83,6 +83,7 @@ docker-compose run --rm api /bin/bash
 
 ## API Authentication
 
-The API expects each incoming request (except login requests) to have a valid JWT in the `Authorization` header in the format `Bearer <your-jwt>`.
-On a successful login request, the user gets an access and refresh token.  Each access token is valid for 1 hour while the refresh token valid for 1 year.
-The refresh token is to be used to get a new valid access token should the current one expire.
+The API expects each incoming request (except login requests) to have a valid JWT in the `Authorization` header in the 
+format `Bearer <your-jwt>`. On a successful login request, the user gets an access and refresh token.  Each access token 
+is valid for 1 hour while the refresh token valid for 1 year. The refresh token is to be used to get a new valid access 
+token should the current one expire.

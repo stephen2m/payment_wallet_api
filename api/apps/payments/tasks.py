@@ -12,22 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task()
-def process_webhook_event(stitch_signature_header, request_data):
-    parsed_payload = json.dumps(request_data, separators=(',', ':'))
-
-    if not stitch_signature_header:
-        logger.error('Skipping processing of event. X-Stitch-Signature not found in request headers.')
-
-        return
-
+def process_webhook_event(stitch_signature_header, payload, hash_input):
     parsed_signature = get_signature_sections(stitch_signature_header)
-    hash_input = f'{parsed_signature["t"]}.{parsed_payload}'
     computed_hash = calculate_hmac_signature(hash_input)
     hashes_match = compare_signatures(computed_hash, parsed_signature['hmac_sha256'])
 
     if hashes_match:
-        external_ref = request_data['data']['client']['paymentInitiations']['node']['externalReference']
-        final_status = request_data['data']['client']['paymentInitiations']['node']['status']['__typename']
+        external_ref = payload['data']['client']['paymentInitiations']['node']['externalReference']
+        final_status = payload['data']['client']['paymentInitiations']['node']['status']['__typename']
 
         try:
             payment_request = PaymentRequest.objects.get(transaction_ref=external_ref)
@@ -48,9 +40,9 @@ def process_webhook_event(stitch_signature_header, request_data):
                     payment_request.save()
                 case default:
                     logger.error(f'Received unknown payment status {final_status} for ref '
-                                 f'{payment_request.transaction_reference} worth {payment_request.amount}')
+                                 f'{payment_request.transaction_ref} worth {payment_request.amount}')
         except TransitionNotAllowed as e:
-            logger.error(f'Error processing payment with ref {payment_request.transaction_reference} worth '
+            logger.error(f'Error processing payment with ref {payment_request.transaction_ref} worth '
                          f'{payment_request.amount}: {e}')
 
         logger.info(f'Deposit of {payment_request.amount} to user\'s wallet completed successfully.')

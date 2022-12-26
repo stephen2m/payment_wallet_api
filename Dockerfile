@@ -7,7 +7,7 @@ FROM --platform=linux/amd64 python:3.10-slim-bullseye
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_CACHE_DIR=/var/cache/buildkit/pip \
-    APP_HOME=/code \
+    APP_HOME=/code/ \
     APP_PORT=8000
 
 RUN mkdir -p $PIP_CACHE_DIR

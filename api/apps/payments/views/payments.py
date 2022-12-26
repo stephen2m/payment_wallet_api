@@ -1,8 +1,10 @@
+import json
 import logging
 import uuid
 
 from django.conf import settings
 from django.db import transaction
+from django_fsm import TransitionNotAllowed
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -17,6 +19,7 @@ from api.utils.libs.stitch.base import BaseAPI
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
 from api.utils.permissions import IsActiveUser
+from api.utils.webhook import get_signature_sections, calculate_hmac_signature, compare_signatures
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,14 @@ class ProcessPaymentNotification(CreateAPIView):
     def post(self, request):
         stitch_signature_header = request.META.get('HTTP_X_STITCH_SIGNATURE', '')
 
-        process_webhook_event.delay(stitch_signature_header, request.data)
+        if not stitch_signature_header:
+            logger.error('Skipping processing of event. X-Stitch-Signature not found in request headers.')
+        else:
+            payload = json.loads(request.data)
+            parsed_signature = get_signature_sections(stitch_signature_header)
+            hash_input = f'{parsed_signature["t"]}.{request.data}'
+
+            process_webhook_event.delay(stitch_signature_header, payload, hash_input)
 
         return Response(
             data={'success': 'Webhook received successfully'},
