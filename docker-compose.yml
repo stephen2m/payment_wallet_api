@@ -52,8 +52,6 @@ services:
     depends_on: *depends_containers
     links: *links_containers
     command: docker/scripts/run_api.sh
-    ports:
-      - '8000:8000'
   redis:
     image: redis:4-alpine
     restart: always
