@@ -48,16 +48,15 @@ class ProcessPaymentNotification(CreateAPIView):
 
 
 def create_payment_request(payment_request: dict, stitch_ref: str, user: User) -> PaymentRequest:
-    with transaction.atomic():
-        return PaymentRequest(
-            user=user,
-            transaction_ref=payment_request.get('input').get('externalReference'),
-            payer_reference=payment_request.get('input').get('payerReference'),
-            beneficiary_reference=payment_request.get('input').get('beneficiaryReference'),
-            stitch_ref=stitch_ref,
-            amount=payment_request.get('input').get('amount').get('quantity'),
-            amount_currency=payment_request.get('input').get('amount').get('currency')
-        ).save()
+    return PaymentRequest(
+        user=user,
+        transaction_ref=payment_request.get('input').get('externalReference'),
+        payer_reference=payment_request.get('input').get('payerReference'),
+        beneficiary_reference=payment_request.get('input').get('beneficiaryReference'),
+        stitch_ref=stitch_ref,
+        amount=payment_request.get('input').get('amount').get('quantity'),
+        amount_currency=payment_request.get('input').get('amount').get('currency')
+    ).save()
 
 
 class InitiateWalletDeposit(CreateAPIView):

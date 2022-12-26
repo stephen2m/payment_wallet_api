@@ -17,11 +17,10 @@ class CreateUserSerializer(serializers.ModelSerializer[User]):
     def create(self, validated_data):
         # call create_user on user object. Without this
         # the password will be stored in plain text.
-        with transaction.atomic():
-            user = User.objects.create_user(**validated_data)
-            Wallet.objects.create(user=user)
+        user = User.objects.create_user(**validated_data)
+        Wallet.objects.create(user=user)
 
-            return user
+        return user
 
     class Meta:
         model = User
