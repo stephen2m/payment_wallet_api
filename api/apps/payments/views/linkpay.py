@@ -1,12 +1,10 @@
-import logging
 import urllib.parse
 import uuid
 
 import requests
+import structlog
 from django.conf import settings
 from django.core.cache import cache
-from django.db import transaction
-from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from rest_framework.views import APIView
@@ -19,22 +17,22 @@ from api.utils.libs.stitch.helpers import generate_code_verifier_challenge_pair
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
 from api.utils.permissions import IsActiveUser
 
-logger = logging.getLogger(__name__)
+log = structlog.get_logger('api_requests')
 
 
 def fetch_linked_account_details(access_token: str) -> dict:
+    logger = log.bind(event='get_account_details', request_id=str(uuid.uuid4()))
+
     try:
         account_details = LinkPay(token=access_token).get_linked_account_identity()
 
         return account_details['user']['paymentAuthorization']['bankAccount']
     except LinkPayError as e:
-        error = f'could not fetch linked account identity: {str(e)}'
-        logger.error(error)
+        logger.error(f'could not fetch linked account identity: {str(e)}')
 
         return {}
     except Exception as e:
-        error = f'an unexpected error happened trying to fetch linked account identity: {str(e)}'
-        logger.error(error)
+        logger.error(f'an unexpected error happened trying to fetch linked account identity: {str(e)}')
 
         return {}
 
@@ -65,6 +63,7 @@ class CreatePaymentAuthorizationView(APIView):
 
     def post(self, request):
         serialized_data = PaymentAuthorizationSerializer(data=request.data)
+        logger = log.bind(event='payment_authorization', request_id=str(uuid.uuid4()))
 
         if serialized_data.is_valid(raise_exception=True):
             payment_authorization = {
@@ -134,6 +133,7 @@ class VerifyAndLinkUserAccount(APIView):
 
     def post(self, request):
         serialized_data = FetchUserTokenSerializer(data=request.data)
+        logger = log.bind(event='finalize_linking', request_id=str(uuid.uuid4()))
 
         if serialized_data.is_valid(raise_exception=True):
             authorization_code = serialized_data.validated_data['code']
@@ -157,7 +157,7 @@ class VerifyAndLinkUserAccount(APIView):
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
 
-            logger.info('attempting to fetch user token using authorization code')
+            logger.debug('attempting to fetch user token using authorization code')
 
             try:
                 response = requests.request(
@@ -199,7 +199,7 @@ class VerifyAndLinkUserAccount(APIView):
                     )
 
                 return Response(
-                    data={'error': "Linked account KYC details doesn't match logged in user's KYC details"},
+                    data={'error': 'Mismatch between linked account KYC details and user\'s KYC details'},
                     status=HTTP_400_BAD_REQUEST,
                     content_type='application/json'
                 )
