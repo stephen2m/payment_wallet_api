@@ -67,10 +67,11 @@ class InitiateWalletDeposit(CreateAPIView):
         if serialized_data.is_valid(raise_exception=True):
             try:
                 account_token = BankAccountToken.objects.get(
-                    account__account_id=serialized_data.validated_data['account_id']
+                    account__account_id=serialized_data.validated_data['account_id'],
+                    account__user_id=request.user.id
                 )
             except BankAccountToken.DoesNotExist:
-                logger.error(message='Could not find a saved refresh token for the specified account.')
+                logger.error(message='Could not find a saved refresh token for the specified account+user.')
                 return Response(
                     data={'error': 'Could not initiate payment with the specified account.'},
                     status=HTTP_400_BAD_REQUEST,
