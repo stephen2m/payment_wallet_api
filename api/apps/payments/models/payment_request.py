@@ -18,6 +18,9 @@ class PaymentRequest(TimeStampedModel, MoneyMixin, models.Model):
     beneficiary_reference = models.CharField(max_length=20)
     status = FSMField(default=PaymentRequestStatus.NEW.name)
 
+    class Meta:
+        ordering = ['-created',]
+
     def __repr__(self):
         return f'<PaymentRequest {self.transaction_ref} by {self.user.email}: {self.status}>'
 
