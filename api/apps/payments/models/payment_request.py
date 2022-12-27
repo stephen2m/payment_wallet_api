@@ -13,7 +13,7 @@ from api.utils.mixins.models import MoneyMixin
 class PaymentRequest(TimeStampedModel, MoneyMixin, models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, db_index=True)
     transaction_ref = models.UUIDField(default=uuid.uuid4, db_index=True, null=False, editable=False, primary_key=True)
-    stitch_ref = models.CharField(max_length=100, db_index=True, unique=True)
+    stitch_ref = models.CharField(max_length=100, null=True, default='')
     payer_reference = models.CharField(max_length=12)
     beneficiary_reference = models.CharField(max_length=20)
     status = FSMField(default=PaymentRequestStatus.NEW.name)
