@@ -1,11 +1,8 @@
 import json
-import logging
 import uuid
 
 import structlog
 from django.conf import settings
-from django.db import transaction
-from django_fsm import TransitionNotAllowed
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -20,7 +17,7 @@ from api.utils.libs.stitch.base import BaseAPI
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
 from api.utils.permissions import IsActiveUser
-from api.utils.webhook import get_signature_sections, calculate_hmac_signature, compare_signatures
+from api.utils.webhook import get_signature_sections
 
 log = structlog.get_logger('api_requests')
 
@@ -68,9 +65,26 @@ class InitiateWalletDeposit(CreateAPIView):
         logger = log.bind(event='wallet_deposit_init', request_id=str(uuid.uuid4()))
 
         if serialized_data.is_valid(raise_exception=True):
-            account_token = BankAccountToken.objects.get(
-                account__account_id=serialized_data.validated_data['account_id']
-            )
+            try:
+                account_token = BankAccountToken.objects.get(
+                    account__account_id=serialized_data.validated_data['account_id']
+                )
+            except BankAccountToken.DoesNotExist:
+                logger.info(message='Could not find a saved refresh token for the specified account.')
+                return Response(
+                    data={'error': 'Could not initiate payment with the specified account.'},
+                    status=HTTP_400_BAD_REQUEST,
+                    content_type='application/json'
+                )
+
+            if account_token.account.user != request.user:
+                logger.info(message='Initiating payment with account not owned by session user')
+                return Response(
+                    data={'error': 'Please specify a valid account for the session user'},
+                    status=HTTP_400_BAD_REQUEST,
+                    content_type='application/json'
+                )
+
             existing_payer_refs = PaymentRequest.objects.values_list('payer_reference', flat=True)
             existing_ben_refs = PaymentRequest.objects.values_list('beneficiary_reference', flat=True)
 
@@ -96,8 +110,6 @@ class InitiateWalletDeposit(CreateAPIView):
             try:
                 user_token = BaseAPI().rehydrate_user_credentials(account_token.refresh_token)
 
-                account_token = BankAccountToken.objects.get(account__account_id='YWNjb3VudC9jYXBpdGVjLzQ3MDAxMC8xOTkxMzkzNjY5')
-
                 account_token.token_id = user_token['id_token']
                 account_token.refresh_token = user_token['refresh_token']
                 account_token.save()
@@ -122,6 +134,11 @@ class InitiateWalletDeposit(CreateAPIView):
                 )
             except LinkPayError as e:
                 error_context = e.extras
+                error_message = e.get_full_details()
+
+                stitch_ref = error_context.get('id', 'no-stitch-ref')
+                create_payment_request(payment_request, stitch_ref, request.user)
+
                 if (e.get_codes()) == 'USER_INTERACTION_REQUIRED':
                     if error_context:
                         redirect_uri = settings.LINKPAY_USER_INTERACTION_URI
@@ -132,21 +149,19 @@ class InitiateWalletDeposit(CreateAPIView):
 
                         stitch_ref = error_context.get('id', 'error-getting-ref')
 
-                        logger.info(stitch_ref=stitch_ref, message=e.get_full_details())
-
-                        create_payment_request(payment_request, stitch_ref, request.user)
+                        logger.info(stitch_ref=stitch_ref, message=error_message)
 
                         return Response(
                             data=response,
                             content_type='application/json'
                         )
                     else:
-                        logger.error(message='Could not determine user integration URL from error message context')
+                        logger.error(message='Could not determine error message context')
 
-                logger.error(message=e)
+                logger.error(message=error_message)
 
                 return Response(
-                    data={'error': f'Could not initiate your payment request. Please try again.'},
+                    data={'error': error_message},
                     status=HTTP_400_BAD_REQUEST,
                     content_type='application/json'
                 )
