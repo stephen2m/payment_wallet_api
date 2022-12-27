@@ -137,7 +137,7 @@ class InitiateWalletDeposit(CreateAPIView):
                 error_context = e.extras
                 error_message = e.get_full_details()
 
-                stitch_ref = error_context.get('id', 'no-stitch-ref')
+                stitch_ref = error_context.get('id', '')
                 create_payment_request(payment_request, stitch_ref, request.user)
 
                 if (e.get_codes()) == 'USER_INTERACTION_REQUIRED':
@@ -147,8 +147,6 @@ class InitiateWalletDeposit(CreateAPIView):
                         response = {
                             'url': f'{user_interaction_uri}?redirect_uri={redirect_uri}'
                         }
-
-                        stitch_ref = error_context.get('id', 'error-getting-ref')
 
                         logger.info(stitch_ref=stitch_ref, message=error_message)
 
