@@ -6,7 +6,7 @@ from django_fsm import FSMField, transition
 
 from model_utils.models import TimeStampedModel
 
-from api.utils.enums import PaymentRequestStatus, enum_choices
+from api.utils.enums import PaymentRequestStatus, enum_choices, PaymentRequestEventType
 from api.utils.mixins.models import MoneyMixin
 
 
@@ -41,3 +41,9 @@ class PaymentRequest(TimeStampedModel, MoneyMixin, models.Model):
                 conditions=[can_finalise])
     def expired(self):
         pass
+
+
+class PaymentRequestEvent(TimeStampedModel, models.Model):
+    payment_request = models.ForeignKey(PaymentRequest, on_delete=models.PROTECT)
+    event_type = models.CharField(max_length=25, choices=enum_choices(PaymentRequestEventType))
+    event_description = models.TextField(default='')

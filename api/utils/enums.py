@@ -15,3 +15,12 @@ class PaymentRequestStatus(enum.Enum):
 class IdentificationType(enum.Enum):
     PASSPORT = 'Passport Number'
     ID = 'Identification Number'
+
+
+class PaymentRequestEventType(enum.Enum):
+    INITIATED = 'Payment Initiated'
+    COMPLETED = 'Payment Completed'
+    FAILED = 'Payment Failed'
+    EXPIRED = 'Payment Expired'
+    USER_INTERACTION = 'User Interaction Required'
+    CONFIRMED = 'Payment Confirmed'

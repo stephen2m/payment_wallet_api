@@ -8,11 +8,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_400_BAD_REQUEST
 
-from api.apps.payments.models import PaymentRequest, BankAccountToken
+from api.apps.payments.models import PaymentRequest, BankAccountToken, PaymentRequestEvent
 from api.apps.payments.serializers.payments import InitiateWalletDepositSerializer
 from api.apps.payments.tasks import process_webhook_event
 from api.apps.users.models import User
 from api.utils.code_generator import generate_code
+from api.utils.enums import PaymentRequestEventType
 from api.utils.libs.stitch.base import BaseAPI
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
@@ -46,7 +47,7 @@ class ProcessPaymentNotification(CreateAPIView):
 
 
 def create_payment_request(payment_request: dict, stitch_ref: str, user: User) -> PaymentRequest:
-    return PaymentRequest(
+    payment_request = PaymentRequest.objects.create(
         user=user,
         transaction_ref=payment_request.get('input').get('externalReference'),
         payer_reference=payment_request.get('input').get('payerReference'),
@@ -54,7 +55,13 @@ def create_payment_request(payment_request: dict, stitch_ref: str, user: User) -
         stitch_ref=stitch_ref,
         amount=payment_request.get('input').get('amount').get('quantity'),
         amount_currency=payment_request.get('input').get('amount').get('currency')
-    ).save()
+    )
+
+    payment_request.paymentrequestevent_set.create(
+        event_type=PaymentRequestEventType.INITIATED.name
+    )
+
+    return payment_request
 
 
 class InitiateWalletDeposit(CreateAPIView):
@@ -96,7 +103,7 @@ class InitiateWalletDeposit(CreateAPIView):
 
             validated_amount = serialized_data.validated_data['amount']
             external_reference = uuid.uuid4()
-            payment_request = {
+            payment_request_data = {
                 'input': {
                     'amount': {
                         'quantity': f'{validated_amount.amount}',
@@ -117,13 +124,13 @@ class InitiateWalletDeposit(CreateAPIView):
 
                 logger.debug(message='Token refreshed successfully')
 
-                payment_init = LinkPay(token=user_token['access_token']).initiate_user_payment(payment_request)
+                payment_init = LinkPay(token=user_token['access_token']).initiate_user_payment(payment_request_data)
 
                 stitch_ref = payment_init.get('userInitiatePayment', {}) \
                     .get('paymentInitiation', {}) \
                     .get('id', 'error-getting-ref')
 
-                create_payment_request(payment_request, stitch_ref, request.user)
+                create_payment_request(payment_request_data, stitch_ref, request.user)
 
                 message = f'Deposit of {validated_amount} initiated successfully'
 
@@ -138,9 +145,14 @@ class InitiateWalletDeposit(CreateAPIView):
                 error_message = e.get_full_details()
 
                 stitch_ref = error_context.get('id', '')
-                create_payment_request(payment_request, stitch_ref, request.user)
+                payment_request = create_payment_request(payment_request_data, stitch_ref, request.user)
 
                 if (e.get_codes()) == 'USER_INTERACTION_REQUIRED':
+                    payment_request.paymentrequestevent_set.create(
+                        event_type=PaymentRequestEventType.USER_INTERACTION.name,
+                        event_description=e.detail
+                    )
+
                     if error_context:
                         redirect_uri = settings.LINKPAY_USER_INTERACTION_URI
                         user_interaction_uri = error_context.get('userInteractionUrl')
@@ -155,7 +167,7 @@ class InitiateWalletDeposit(CreateAPIView):
                             content_type='application/json'
                         )
                     else:
-                        logger.error(message='Could not determine error message context')
+                        logger.error(message='Could not find error message context to extract user interaction URI')
 
                 logger.error(message=error_message)
 
@@ -166,7 +178,7 @@ class InitiateWalletDeposit(CreateAPIView):
                 )
             except Exception as e:
                 error_prefix = 'An unexpected error happened trying to initiate payment request'
-                logger.error(f'{error_prefix}: {str(e)}')
+                logger.error(message=f'{error_prefix}: {str(e)}')
 
                 return Response(
                     data={'error': error_prefix},

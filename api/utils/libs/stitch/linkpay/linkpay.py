@@ -1,6 +1,4 @@
 import asyncio
-import logging
-import os.path
 import uuid
 from pathlib import Path
 from typing import Dict, Union, Any
@@ -36,13 +34,13 @@ class LinkPay(BaseAPI):
 
         try:
             response = self.client.execute(graphql_query, variable_values=payment_request)
-            logger.debug(f'Payment authorization created successfully')
+            logger.debug(message='Payment authorization created successfully')
             return response
         except TransportQueryError as err:
-            logger.error(err.errors[0]['message'])
+            logger.error(message=err.errors[0]['message'])
             raise LinkPayError(err.errors[0]['message'])
         except asyncio.exceptions.TimeoutError as err:
-            logger.error(err)
+            logger.error(message=err)
 
             raise err
 
@@ -53,13 +51,13 @@ class LinkPay(BaseAPI):
 
         try:
             response = self.client.execute(graphql_query)
-            logger.debug('Linked account details successfully retrieved')
+            logger.debug(message='Linked account details successfully retrieved')
             return response
         except TransportQueryError as err:
-            logger.error(err.errors[0]['message'])
+            logger.info(message=err.errors[0]['message'])
             raise LinkPayError(err.errors[0]['message'])
         except asyncio.exceptions.TimeoutError as err:
-            logger.error(err)
+            logger.error(message=err)
 
             raise err
 
@@ -70,15 +68,15 @@ class LinkPay(BaseAPI):
 
         try:
             response = self.client.execute(graphql_query, variable_values=payment_request)
-            logger.debug('Payment initiated successfully')
+            logger.debug(message='Payment initiated successfully')
             return response
         except TransportQueryError as err:
             error_detail = err.errors[0]['message']
             error_code = err.errors[0].get('extensions', {}).get('code')
-            logger.error(err.errors[0]['message'])
+            logger.info(message=err.errors[0]['message'])
 
             raise LinkPayError(detail=error_detail, code=error_code, extras=err.errors[0].get('extensions', {}))
         except asyncio.exceptions.TimeoutError as err:
-            logger.error(err)
+            logger.error(message=err)
 
             raise err
