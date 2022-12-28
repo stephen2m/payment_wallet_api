@@ -19,7 +19,7 @@ class PaymentRequest(TimeStampedModel, MoneyMixin, models.Model):
     status = FSMField(default=PaymentRequestStatus.NEW.name)
 
     class Meta:
-        ordering = ['-created',]
+        ordering = ['-created', ]
 
     def __repr__(self):
         return f'<PaymentRequest {self.transaction_ref} by {self.user.email}: {self.status}>'
@@ -27,14 +27,17 @@ class PaymentRequest(TimeStampedModel, MoneyMixin, models.Model):
     def can_finalise(self):
         return self.status == PaymentRequestStatus.NEW.name
 
-    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.COMPLETE.name, conditions=[can_finalise])
+    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.COMPLETE.name,
+                conditions=[can_finalise])
     def completed(self):
         pass
 
-    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.FAILED.name, conditions=[can_finalise])
+    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.FAILED.name,
+                conditions=[can_finalise])
     def failed(self):
         pass
 
-    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.FAILED.name, conditions=[can_finalise])
+    @transition(field=status, source=PaymentRequestStatus.NEW.name, target=PaymentRequestStatus.FAILED.name,
+                conditions=[can_finalise])
     def expired(self):
         pass

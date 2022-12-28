@@ -58,7 +58,6 @@ class Common(Configuration):
             conn_max_age=int(os.getenv('POSTGRES_CONN_MAX_AGE', 600)),
         )
     }
-    DATABASES['default']['ATOMIC_REQUESTS'] = True
 
     # General
     APPEND_SLASH = False

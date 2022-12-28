@@ -1,7 +1,10 @@
-from django.db import models
+from decimal import Decimal
+
+from django.db import models, transaction
 from django.conf import settings
 from djmoney.models.fields import MoneyField
 from djmoney.models.validators import MinMoneyValidator
+from djmoney.money import Money
 
 from model_utils.models import TimeStampedModel
 
@@ -13,18 +16,22 @@ class Wallet(TimeStampedModel, models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, primary_key=True)
     amount = MoneyField(max_digits=19, decimal_places=2, default_currency='ZAR', default=0)
 
-    def deposit(self, amount):
+    def deposit(self, amount: Decimal):
         """
         Deposits to the wallet and creates a new transaction with the deposit amount.
         """
-        self.transaction_set.create(
-            amount=amount,
-            running_balance=self.amount + amount
-        )
-        self.amount += amount
-        self.save()
+        if amount <= 0:
+            raise InsufficientBalance('Deposit amount should be greater that 0')
 
-    def withdraw(self, amount):
+        with transaction.atomic():
+            self.transaction_set.create(
+                amount=amount,
+                running_balance=self.amount.amount + amount
+            )
+            self.amount.amount += amount
+            self.save()
+
+    def withdraw(self, amount: Money):
         """
         Withdraws from the wallet and creates a new transaction with the withdrawal amount.
 
@@ -33,14 +40,15 @@ class Wallet(TimeStampedModel, models.Model):
         if amount > self.amount:
             raise InsufficientBalance(f'This wallet has insufficient balance to withdraw {amount}.')
 
-        self.transaction_set.create(
-            amount=-amount,
-            running_balance=self.amount - amount
-        )
-        self.amount -= amount
-        self.save()
+        with transaction.atomic():
+            self.transaction_set.create(
+                amount=-amount,
+                running_balance=self.amount.amount - amount
+            )
+            self.amount.amount -= amount
+            self.save()
 
-    def transfer(self, wallet, amount):
+    def transfer(self, wallet, amount: Decimal):
         """
         Uses `deposit` and `withdraw` internally to transfer the specified amount to another wallet.
         """
@@ -52,5 +60,5 @@ class Transaction(TimeStampedModel, MoneyMixin, models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.PROTECT)
     running_balance = MoneyField(
         max_digits=19, decimal_places=2,
-        default_currency='KES', validators=[MinMoneyValidator(1)]
+        default_currency='ZAR', validators=[MinMoneyValidator(1)]
     )

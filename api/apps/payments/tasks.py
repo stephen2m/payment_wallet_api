@@ -4,7 +4,7 @@ import structlog
 from celery import shared_task
 from django_fsm import TransitionNotAllowed
 
-from api.apps.payments.models import PaymentRequest
+from api.apps.payments.models import PaymentRequest, Wallet
 from api.utils.webhook import get_signature_sections, calculate_hmac_signature, compare_signatures
 
 log = structlog.get_logger('api_requests')
@@ -25,7 +25,7 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
 
     if hashes_match:
         try:
-            payment_request = PaymentRequest.objects.get(transaction_ref=external_ref)
+            payment_request: PaymentRequest = PaymentRequest.objects.get(transaction_ref=external_ref)
         except PaymentRequest.DoesNotExist:
             logger.error('Received unknown payment request')
             return
@@ -35,6 +35,9 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
                 case 'PaymentInitiationCompleted':
                     payment_request.completed()
                     payment_request.save()
+
+                    user_wallet: Wallet = Wallet.objects.get(user=payment_request.user)
+                    user_wallet.deposit(payment_request.amount.amount)
                 case 'PaymentInitiationFailed':
                     payment_request.failed()
                     payment_request.save()
