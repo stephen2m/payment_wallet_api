@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import re_path
 
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -8,9 +8,9 @@ app_name = 'auth'
 
 urlpatterns = [
     # custom views
-    path('signup', UserCreateView.as_view(), name='signup'),
-    path('signin', UserLoginView.as_view(), name='signin'),
-    path('refresh', TokenRefreshView.as_view(), name='token_refresh'),
-    path('users', UserListView.as_view(), name='list-users'),
-    path('users/<str:id>', UserDetailsUpdateView.as_view(), name='view-update-user'),
+    re_path(r'signup$', UserCreateView.as_view(), name='signup'),
+    re_path(r'signin$', UserLoginView.as_view(), name='signin'),
+    re_path(r'refresh$', TokenRefreshView.as_view(), name='token_refresh'),
+    re_path(r'users$', UserListView.as_view(), name='list-users'),
+    re_path(r'users/me$', UserDetailsUpdateView.as_view(), name='view-update-user'),
 ]

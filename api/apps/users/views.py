@@ -64,10 +64,9 @@ class UserListView(ListAPIView):
 
 
 class UserDetailsUpdateView(RetrieveUpdateAPIView):
-    lookup_url_kwarg = 'id'
 
     def get_queryset(self):
-        return get_object_or_404(User, id=self.kwargs.get(self.lookup_url_kwarg))
+        return get_object_or_404(User, id=self.request.user)
 
     def get_object(self):
         return self.get_queryset()
@@ -85,14 +84,6 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
             permission_classes = (IsOwner, )
 
         return [permission() for permission in permission_classes]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({
-            'user_id': self.kwargs.get(self.lookup_url_kwarg)
-        })
-
-        return context
 
     def patch(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.get_object(), data=request.data, partial=True)

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import re_path
 
 from api.apps.payments.views.linkpay import CreatePaymentAuthorizationView, VerifyAndLinkUserAccount
 from api.apps.payments.views.payments import InitiateWalletDeposit, ProcessPaymentNotification
@@ -8,10 +8,10 @@ app_name = 'payments'
 
 urlpatterns = [
     # custom views
-    path('linkpay/authorize', CreatePaymentAuthorizationView.as_view(), name='linkpay_authorize'),
-    path('linkpay/account/verify', VerifyAndLinkUserAccount.as_view(), name='linkpay_verify_linked_account'),
-    path('accounts/user', FetchUserLinkedAccounts.as_view(), name='linked_user_accounts'),
-    path('deposit/initiate', InitiateWalletDeposit.as_view(), name='initiate_deposit'),
-    path('linkpay/notify', ProcessPaymentNotification.as_view(), name='process_payment_notification'),
-    path('transactions/user', FetchUserTransactions.as_view(), name='user_payment_requests'),
+    re_path(r'linkpay/authorize$', CreatePaymentAuthorizationView.as_view(), name='linkpay_authorize'),
+    re_path(r'linkpay/account/verify$', VerifyAndLinkUserAccount.as_view(), name='linkpay_verify_linked_account'),
+    re_path(r'accounts/user$', FetchUserLinkedAccounts.as_view(), name='linked_user_accounts'),
+    re_path(r'deposit/initiate$', InitiateWalletDeposit.as_view(), name='initiate_deposit'),
+    re_path(r'linkpay/notify$', ProcessPaymentNotification.as_view(), name='process_linkpay_webhook'),
+    re_path(r'transactions/user$', FetchUserTransactions.as_view(), name='user_payment_requests'),
 ]
