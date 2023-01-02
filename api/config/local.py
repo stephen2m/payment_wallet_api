@@ -4,7 +4,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Local(Common):
-    DEBUG = False
+    # Set DEBUG to False as a default for safety
+    # https://docs.djangoproject.com/en/dev/ref/settings/#debug
+    DEBUG = True
 
     # Testing
     INSTALLED_APPS = Common.INSTALLED_APPS
@@ -23,3 +25,5 @@ class Local(Common):
     EMAIL_HOST = 'localhost'
     EMAIL_PORT = 1025
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+    CORS_ORIGIN_ALLOW_ALL = True
