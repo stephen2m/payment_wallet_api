@@ -47,3 +47,6 @@ class PaymentRequestEvent(TimeStampedModel, models.Model):
     payment_request = models.ForeignKey(PaymentRequest, on_delete=models.PROTECT)
     event_type = models.CharField(max_length=25, choices=enum_choices(PaymentRequestEventType))
     event_description = models.TextField(default='')
+
+    class Meta:
+        ordering = ['created', ]

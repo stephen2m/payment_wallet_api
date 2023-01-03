@@ -45,6 +45,6 @@ class FetchUserTransactions(RetrieveAPIView):
         ]
 
         return Response(
-            data=list(transaction_list),
+            data=transaction_list,
             content_type='application/json'
         )
