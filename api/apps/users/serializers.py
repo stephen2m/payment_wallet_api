@@ -30,15 +30,20 @@ class CreateUserSerializer(serializers.ModelSerializer[User]):
 
 class UserUpdateSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=100, required=False, allow_blank=True, allow_null=True)
-    full_name = serializers.CharField(max_length=255)
-    short_name = serializers.CharField(max_length=100)
-    password = serializers.CharField(write_only=True)
+    full_name = serializers.CharField(max_length=255, required=False)
+    short_name = serializers.CharField(max_length=100, required=False)
+    password = serializers.CharField(write_only=True, required=False)
 
     def update(self, *args, **kwargs):
         user = args[0]
-        user.full_name = self.validated_data['full_name']
-        user.email = self.validated_data['email']
-        user.short_name = self.validated_data['short_name']
+        password = self.validated_data.pop('password', None)
+
+        for key, value in self.validated_data.items():
+            setattr(user, key, value)
+
+        if password is not None:
+            user.set_password(password)
+
         user.save()
 
         return user

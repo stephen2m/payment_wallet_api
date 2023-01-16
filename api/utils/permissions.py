@@ -42,4 +42,4 @@ class IsOwner(BaseAuthPermission):
 
     def has_object_permission(self, request, view, obj):
 
-        return bool(request.user.is_active and (obj.created_by == request.user))
+        return bool(obj.user == request.user)

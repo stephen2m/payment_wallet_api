@@ -1,16 +1,16 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import update_last_login
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, get_object_or_404, CreateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.apps.payments.models import Wallet
-from api.utils.permissions import IsActiveAdminUser, IsOwner, IsNotAuthenticated
 from api.apps.users.models import User
 from api.apps.users.serializers import CreateUserSerializer, UserSerializer, UserUpdateSerializer
+from api.utils.permissions import IsActiveAdminUser, IsNotAuthenticated, IsActiveUser
 
 
 class UserLoginView(APIView):
@@ -64,12 +64,10 @@ class UserListView(ListAPIView):
 
 
 class UserDetailsUpdateView(RetrieveUpdateAPIView):
-
-    def get_queryset(self):
-        return get_object_or_404(User, id=self.request.user)
+    permission_classes = (IsActiveUser,)
 
     def get_object(self):
-        return self.get_queryset()
+        return self.request.user
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -77,21 +75,10 @@ class UserDetailsUpdateView(RetrieveUpdateAPIView):
         if self.request.method == 'PUT':
             return UserUpdateSerializer
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            permission_classes = (IsAuthenticated, )
-        if self.request.method == 'PUT':
-            permission_classes = (IsOwner, )
-
-        return [permission() for permission in permission_classes]
-
     def patch(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.get_object(), data=request.data, partial=True)
 
         if serializer.is_valid(raise_exception=True):
             instance = self.get_object()
-            if 'password' in serializer.data:
-                instance.set_password(serializer.data['password'])
-            instance.save()
 
         return Response(UserSerializer(instance).data, status=HTTP_200_OK)

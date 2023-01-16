@@ -2,11 +2,12 @@
 
 [![Built with](https://img.shields.io/badge/Built_with-Cookiecutter_Django_Rest-F7B633.svg)](https://github.com/agconti/cookiecutter-django-rest)
 
-Backend API for a basic wallet management system.
+Backend API for a basic wallet management system using Stitch LinkPay.
 
 # Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
+- Okteto CLI >= 1.8.17. Follow this [guide](https://www.okteto.com/docs/getting-started/) to upgrade to the latest version.
 
 # Local Development
 
@@ -20,7 +21,7 @@ to pass those values as build arguments.
 docker build --build-arg STITCH_CLIENT_ID=$STITCH_CLIENT_ID --build-arg STITCH_CLIENT_SECRET=$STITCH_CLIENT_SECRET --build-arg WEBHOOK_SECRET_KEY=$WEBHOOK_SECRET_KEY .
 ```
 
-Start the dev server for local development:
+Start the dev server on port 8081 for local development:
 
 ```bash
 docker-compose up
