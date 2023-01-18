@@ -2,7 +2,7 @@
 
 [![Built with](https://img.shields.io/badge/Built_with-Cookiecutter_Django_Rest-F7B633.svg)](https://github.com/agconti/cookiecutter-django-rest)
 
-Backend API for a basic wallet management system using Stitch LinkPay.
+Backend API for a basic wallet management system using Stitch LinkPay and Linked disbursements.
 
 # Prerequisites
 
@@ -11,11 +11,11 @@ Backend API for a basic wallet management system using Stitch LinkPay.
 
 # Local Development
 
-To speed up docker builds ensure [buildkit](https://docs.docker.com/build/buildkit/) is enabled.  
+To speed up docker builds, you'll want to ensure [buildkit](https://docs.docker.com/build/buildkit/) is enabled.  
 For Linux you can set the `DOCKER_BUILDKIT=1` environment variable or add this to your `daemon.json` e.g. for Windows `"features": { "buildkit": true }`
 
-First step will be to build the API container.  To avoid having the Stitch client ID and secret in the docker compose file, you;ll need
-to pass those values as build arguments.
+First step will be to build the API container.  To avoid having the Stitch client ID and secret in the docker compose file, you'll need
+to pass those values as build arguments.  Should you also require signed webhooks, ensure you add the value `WEBHOOK_SECRET_KEY` to the build arguments
 
 ```bash
 docker build --build-arg STITCH_CLIENT_ID=$STITCH_CLIENT_ID --build-arg STITCH_CLIENT_SECRET=$STITCH_CLIENT_SECRET --build-arg WEBHOOK_SECRET_KEY=$WEBHOOK_SECRET_KEY .
@@ -27,22 +27,15 @@ Start the dev server on port 8081 for local development:
 docker-compose up
 ```
 
-Create a superuser to enable you to perform any admin-level operations:
-
-```bash
-docker-compose run --rm api python manage.py createsuperuser
-```
-
 Run a command inside the docker container:
 
 ```bash
 docker-compose run --rm api [command]
 ```
 
-
 ## Project Dependencies
 
-This project uses poetry to manage any Python packages required at runtime.  To add any new packages, you
+This project uses poetry to manage any Python packages required at runtime.  To add any new packages, you can run the following command
 
 ```bash
 poetry add [package]
@@ -66,17 +59,17 @@ docker-compose run --rm api python manage.py migrate
 
 Then each time the database models change repeat the `makemigrations` and `migrate` commands.
 
-To sync the database in another system just pull the latest changes and run the `migrate` command (this is always done automatically when Docker is starting up).
+To sync the database in another system just pull the latest changes and run the `migrate` command (for local development, this is always done automatically when Docker is starting up).
 
 ## Shell
 
-To open an interactive Python shell, run the following command
+To open an interactive Python shell, run the following command:
 
 ```bash
 docker-compose run --rm api python manage.py shell
 ```
 
-You can also drop into the Linux shell by running the following command
+You can also drop into the Linux shell by running the following command:
 
 ```bash
 docker-compose run --rm api /bin/bash
