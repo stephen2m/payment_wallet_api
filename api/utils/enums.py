@@ -24,3 +24,9 @@ class PaymentRequestEventType(enum.Enum):
     EXPIRED = 'Payment Expired'
     USER_INTERACTION = 'User Interaction Required'
     CONFIRMED = 'Payment Confirmed'
+
+
+class StitchLinkPayStatus(enum.Enum):
+    COMPLETED = 'PaymentInitiationCompleted'
+    FAILED = 'PaymentInitiationFailed'
+    EXPIRED = 'PaymentInitiationExpired'
