@@ -3,6 +3,7 @@ import os
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from gql import gql
 from graphql import DocumentNode
 
@@ -33,7 +34,13 @@ class BaseAPI(object):
         with open(path) as f:
             return gql(f.read())
 
-    def generate_client_token(self, scope: str) -> str:
+    def get_client_token(self, scope: str) -> str:
+        access_token = cache.get('access_token')
+
+        if access_token:
+            logger.debug('access token reused')
+            return access_token
+
         payload = {
             'client_id': self.client_id,
             'audience': CLIENT_TOKEN_ENDPOINT,
@@ -55,7 +62,12 @@ class BaseAPI(object):
             logger.error(f'Error making client generate call to {CLIENT_TOKEN_ENDPOINT} {err}')
             raise SystemExit(err)
 
-        return response.json()['access_token']
+        access_token = response.json()['access_token']
+        # the token will expire in 3600 seconds, so expire it in the cache slightly earlier in 57 minutes
+        cache.set('access_token', access_token, 3420)
+        logger.debug('access token saved to cache for reuse')
+
+        return access_token
 
     def rehydrate_user_credentials(self, refresh_token: str) -> dict:
         payload = {

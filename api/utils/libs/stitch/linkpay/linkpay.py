@@ -20,7 +20,7 @@ class LinkPay(BaseAPI):
         super().__init__()
 
         if token is None:
-            token = self.generate_client_token('client_paymentauthorizationrequest')
+            token = self.get_client_token('client_paymentauthorizationrequest')
 
         headers = {'Authorization': f'Bearer {token}'}
         transport = RequestsHTTPTransport(url=GRAPHQL_ENDPOINT, headers=headers, retries=3)

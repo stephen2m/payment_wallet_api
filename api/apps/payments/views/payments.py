@@ -80,7 +80,7 @@ class InitiateWalletDeposit(CreateAPIView):
             except BankAccountToken.DoesNotExist:
                 logger.error(message='Could not find a saved refresh token for the specified account+user.')
                 return Response(
-                    data={'error': 'Could not initiate payment with the specified account.'},
+                    data={'error': 'Please ensure the specified account has been linked before using it to initiate a deposit.'},
                     status=HTTP_400_BAD_REQUEST,
                     content_type='application/json'
                 )
