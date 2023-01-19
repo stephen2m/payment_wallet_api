@@ -3,10 +3,6 @@ from .common import Common
 
 
 class Production(Common):
-    # Set DEBUG to False as a default for safety
-    # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-    DEBUG = False
-
     INSTALLED_APPS = Common.INSTALLED_APPS
     SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 

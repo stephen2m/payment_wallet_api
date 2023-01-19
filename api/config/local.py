@@ -4,10 +4,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Local(Common):
-    # Set DEBUG to False as a default for safety
-    # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-    DEBUG = True
-
     # Testing
     INSTALLED_APPS = Common.INSTALLED_APPS
     INSTALLED_APPS += ('django_nose',)
