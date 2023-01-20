@@ -34,7 +34,7 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
 
         try:
             match final_status:
-                case StitchLinkPayStatus.COMPLETED.name:
+                case StitchLinkPayStatus.COMPLETED.value:
                     payment_request.completed()
                     payment_request.save()
 
@@ -44,7 +44,7 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
 
                     user_wallet: Wallet = Wallet.objects.get(user=payment_request.user)
                     user_wallet.deposit(payment_request.amount.amount)
-                case StitchLinkPayStatus.FAILED.name:
+                case StitchLinkPayStatus.FAILED.value:
                     failure_reason = webhook_data['status']['reason']
 
                     payment_request.failed()
@@ -54,7 +54,7 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
                         event_type=PaymentRequestEventType.FAILED.name,
                         event_description=failure_reason
                     )
-                case StitchLinkPayStatus.EXPIRED.name:
+                case StitchLinkPayStatus.EXPIRED.value:
                     payment_request.expired()
                     payment_request.save()
 
