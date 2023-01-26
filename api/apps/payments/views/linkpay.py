@@ -5,12 +5,14 @@ import requests
 import structlog
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from rest_framework.views import APIView
 
 from api.apps.payments.models import BankAccount, BankAccountToken
-from api.apps.payments.serializers.linkpay import PaymentAuthorizationSerializer, FetchUserTokenSerializer
+from api.apps.payments.serializers.linkpay import PaymentAuthorizationSerializer, FetchUserTokenSerializer, \
+    UnlinkAccountSerializer
 from api.apps.users.models import User
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.helpers import generate_code_verifier_challenge_pair
@@ -211,3 +213,65 @@ class VerifyAndLinkUserAccount(APIView):
                     status=HTTP_500_INTERNAL_SERVER_ERROR,
                     content_type='application/json'
                 )
+
+
+class UnlinkUserAccount(APIView):
+    permission_classes = (IsActiveUser,)
+
+    def post(self, request):
+        serialized_data = UnlinkAccountSerializer(data=request.data)
+        logger = log.bind(event='unlink_account', request_id=str(uuid.uuid4()), email=request.user.email)
+
+        if serialized_data.is_valid(raise_exception=True):
+            try:
+                linked_account: BankAccount = BankAccount.objects.get(
+                    account_id=serialized_data.validated_data['account_id'],
+                    user_id=request.user.id
+                )
+            except BankAccount.DoesNotExist:
+                logger.error(message='Could not find the specified account.')
+                return Response(
+                    data={'error': 'Please ensure the specified account has been linked.'},
+                    status=HTTP_400_BAD_REQUEST,
+                    content_type='application/json'
+                )
+
+            try:
+                refresh_token = linked_account.bankaccounttoken.refresh_token
+            except ObjectDoesNotExist:
+                logger.error(message='Specified account does not have a refresh token saved.')
+                return Response(
+                    data={'error': 'Please ensure the specified account has been linked.'},
+                    status=HTTP_400_BAD_REQUEST,
+                    content_type='application/json'
+                )
+
+            request_body = {
+                'client_id': settings.STITCH_CLIENT_ID,
+                'client_secret': settings.STITCH_CLIENT_SECRET,
+                'token': refresh_token,
+                'token_type_hint': 'refresh_token',
+            }
+
+            url = 'https://secure.stitch.money/connect/revocation'
+            payload = urllib.parse.urlencode(request_body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+
+            try:
+                response = requests.request(
+                    'POST', url, headers=headers, data=payload
+                )
+                response.raise_for_status()
+                logger.info('Refresh token revoked successfully on Stitch')
+            except requests.exceptions.RequestException as e:
+                logger.error(f'could not revoke refresh token on Stitch: {str(e)}')
+
+            linked_account.delete()
+            logger.info('Account records and token successfully deleted')
+
+            return Response(
+                data={'success': 'Account successfully unlinked'},
+                content_type='application/json'
+            )

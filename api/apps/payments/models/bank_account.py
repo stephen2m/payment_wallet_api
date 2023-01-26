@@ -2,6 +2,8 @@ import os
 
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 
 from encrypted_fields import fields
@@ -28,7 +30,12 @@ class BankAccount(TimeStampedModel, models.Model):
 
 
 class BankAccountToken(TimeStampedModel, UUIDModel, models.Model):
-    account = models.OneToOneField(BankAccount, on_delete=models.PROTECT)
+    account = models.OneToOneField(BankAccount, on_delete=models.CASCADE)
     token_id = models.TextField()
     refresh_token = fields.EncryptedCharField(max_length=100)
     refresh_token_expiry = models.DateTimeField(default=default_token_expiry)
+
+
+@receiver(post_delete, sender=BankAccount)
+def auto_delete_account_with_token(sender, instance, **kwargs):
+    instance.bankaccounttoken.delete()

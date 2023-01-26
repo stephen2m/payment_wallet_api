@@ -9,3 +9,7 @@ class PaymentAuthorizationSerializer(serializers.Serializer):
 class FetchUserTokenSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=100)
     state = serializers.CharField(max_length=100)
+
+
+class UnlinkAccountSerializer(serializers.Serializer):
+   account_id = serializers.CharField(max_length=100)
