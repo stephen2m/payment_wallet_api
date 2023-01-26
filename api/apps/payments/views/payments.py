@@ -116,7 +116,7 @@ class InitiateWalletDeposit(CreateAPIView):
             }
 
             try:
-                user_token = BaseAPI().rehydrate_user_credentials(account_token.refresh_token)
+                user_token = BaseAPI().refresh_user_credentials(account_token.refresh_token)
 
                 account_token.token_id = user_token['id_token']
                 account_token.refresh_token = user_token['refresh_token']

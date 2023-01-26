@@ -12,7 +12,7 @@ from graphql import ExecutionResult
 from api.utils.libs.stitch.base import BaseAPI, GRAPHQL_ENDPOINT
 from api.utils.libs.stitch.errors import LinkPayError
 
-log = structlog.get_logger('api_requests')
+log = structlog.get_logger('graphql_requests')
 
 
 class LinkPay(BaseAPI):
@@ -22,8 +22,11 @@ class LinkPay(BaseAPI):
         if token is None:
             token = self.get_client_token('client_paymentauthorizationrequest')
 
-        headers = {'Authorization': f'Bearer {token}'}
-        transport = RequestsHTTPTransport(url=GRAPHQL_ENDPOINT, headers=headers, retries=3)
+        transport = RequestsHTTPTransport(
+            url=GRAPHQL_ENDPOINT,
+            headers={'Authorization': f'Bearer {token}'},
+            retries=3
+        )
 
         self.client = Client(transport=transport)
 
