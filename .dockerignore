@@ -1,4 +1,15 @@
+fly.toml
 .idea
 .git
 .DS_Store
+.cache
+.idea
 __pycache__
+*.pyc
+*.pyo
+*.mo
+*.db
+*.css.map
+*.egg-info
+*.sql.gz
+Dockerfile

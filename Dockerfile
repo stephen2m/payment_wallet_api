@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_CACHE_DIR=/var/cache/buildkit/pip \
     APP_HOME=/code/ \
-    APP_PORT=8000
+    APP_PORT=8081
 
 RUN mkdir -p $PIP_CACHE_DIR
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
@@ -38,4 +38,6 @@ COPY . $APP_HOME
 RUN chmod +x /code/docker/scripts/run_api.sh
 RUN chmod +x /code/docker/scripts/run_celery_worker.sh
 
-EXPOSE 80
+EXPOSE 8081
+
+CMD ["gunicorn", "--bind", ":8081", "--workers", "2", "api.wsgi"]

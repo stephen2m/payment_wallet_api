@@ -1,18 +1,22 @@
-# fly.toml file generated for long-haze-8673 on 2023-03-03T01:49:06+03:00
+# fly.toml file generated for morning-sunset-8984 on 2023-03-03T03:05:52+03:00
 
-app = "long-haze-8673"
+app = "morning-sunset-8984"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
 [env]
+  PORT = "8081"
 
 [experimental]
   auto_rollback = true
 
+[deploy]
+  release_command = "python manage.py migrate --noinput"
+
 [[services]]
   http_checks = []
-  internal_port = 80
+  internal_port = 8081
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
