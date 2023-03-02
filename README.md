@@ -7,7 +7,6 @@ Backend API for a basic wallet management system using Stitch LinkPay and Linked
 # Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/)
-- Okteto CLI >= 1.8.17. Follow this [guide](https://www.okteto.com/docs/getting-started/) to upgrade to the latest version.
 
 # Local Development
 
