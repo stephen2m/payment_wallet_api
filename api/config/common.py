@@ -43,7 +43,7 @@ class Common(Configuration):
 
     ALLOWED_HOSTS = ["*"]
     ROOT_URLCONF = 'api.urls'
-    SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+    SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
     WSGI_APPLICATION = 'api.wsgi.application'
 
     # Email
@@ -223,19 +223,19 @@ class Common(Configuration):
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': os.getenv('REDIS_URL'),
+            'LOCATION': os.environ['REDIS_URL'],
         }
     }
 
     # Django Searchable Encrypted Fields
     # https://pypi.org/project/django-searchable-encrypted-fields/
     FIELD_ENCRYPTION_KEYS = [
-        os.getenv('FIELD_ENCRYPTION_KEY')
+        os.environ['FIELD_ENCRYPTION_KEY']
     ]
 
     # Celery config
-    CELERY_BROKER_URL = os.getenv('REDIS_URL')
-    CELERY_RESULT_BACKEND = os.getenv('REDIS_URL')
+    CELERY_BROKER_URL = os.environ['REDIS_URL']
+    CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
     CELERY_IMPORTS = ('api.apps.payments.tasks',)
 
     # Sentry Config
@@ -248,14 +248,14 @@ class Common(Configuration):
         sentry_sdk.init(SENTRY_DSN, integrations=[DjangoIntegration(), CeleryIntegration()])
 
     # Stitch Config
-    LINKPAY_REDIRECT_URI = os.getenv('LINKPAY_REDIRECT_URI')
-    LINKPAY_USER_INTERACTION_URI = os.getenv('LINKPAY_USER_INTERACTION_URI')
-    STITCH_CLIENT_ID = os.getenv('STITCH_CLIENT_ID')
-    STITCH_CLIENT_SECRET = os.getenv('STITCH_CLIENT_SECRET')
+    LINKPAY_REDIRECT_URI = os.environ['LINKPAY_REDIRECT_URI']
+    LINKPAY_USER_INTERACTION_URI = os.environ['LINKPAY_USER_INTERACTION_URI']
+    STITCH_CLIENT_ID = os.environ['STITCH_CLIENT_ID']
+    STITCH_CLIENT_SECRET = os.environ['STITCH_CLIENT_SECRET']
     STITCH_BENEFICIARY_ACCOUNT = {
-        'bankId': os.getenv('STITCH_BENEFICIARY_BANK_ID'),
-        'name': os.getenv('STITCH_BENEFICIARY_ACCOUNT_NAME'),
-        'accountNumber': os.getenv('STITCH_BENEFICIARY_ACCOUNT_NUMBER'),
-        'accountType': os.getenv('STITCH_BENEFICIARY_ACCOUNT_TYPE'),
-        'beneficiaryType': os.getenv('STITCH_BENEFICIARY_TYPE'),
+        'bankId': os.environ['STITCH_BENEFICIARY_BANK_ID'],
+        'name': os.environ['STITCH_BENEFICIARY_ACCOUNT_NAME'],
+        'accountNumber': os.environ['STITCH_BENEFICIARY_ACCOUNT_NUMBER'],
+        'accountType': os.environ['STITCH_BENEFICIARY_ACCOUNT_TYPE'],
+        'beneficiaryType': os.environ['STITCH_BENEFICIARY_TYPE'],
     }
