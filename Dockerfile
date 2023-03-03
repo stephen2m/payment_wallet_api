@@ -39,5 +39,3 @@ RUN chmod +x /code/docker/scripts/run_api.sh
 RUN chmod +x /code/docker/scripts/run_celery_worker.sh
 
 EXPOSE 8081
-
-CMD ["gunicorn", "--bind", ":8081", "--workers", "2", "api.wsgi"]

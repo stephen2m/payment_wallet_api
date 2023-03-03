@@ -3,7 +3,10 @@
 app = "dry-bush-9331"
 kill_signal = "SIGINT"
 kill_timeout = 5
-processes = []
+
+[processes]
+    app = "gunicorn --bind :8081 --workers 2 api.wsgi"
+    worker = "python -m celery -A api worker --loglevel=info --concurrency 1 -E"
 
 [deploy]
   release_command = "python manage.py migrate --noinput"
