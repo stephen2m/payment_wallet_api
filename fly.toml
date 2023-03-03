@@ -1,6 +1,6 @@
 # fly.toml file generated for morning-sunset-8984 on 2023-03-03T03:05:52+03:00
 
-app = "morning-sunset-8984"
+app = "dry-bush-9331"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []

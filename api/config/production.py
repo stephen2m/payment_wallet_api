@@ -8,9 +8,9 @@ class Production(Common):
 
     # Site
     # https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts
-    ALLOWED_HOSTS = [".cloud.okteto.net"]
+    # ALLOWED_HOSTS will be a space-separated string, so convert it to a list
+    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ')
     INSTALLED_APPS += ("gunicorn",)
 
-    CORS_ALLOWED_ORIGINS = [
-        'https://paiment-stephen2m.cloud.okteto.net'
-    ]
+    # CORS_ALLOWED_ORIGINS will be a space-separated string, so convert it to a list
+    CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS').split(' ')
