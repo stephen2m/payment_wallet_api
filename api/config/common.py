@@ -171,10 +171,15 @@ class Common(Configuration):
                 'formatter': 'default',
                 'level': 'INFO'
             },
+            'logtail': {
+                'class': 'logtail.LogtailHandler',
+                'formatter': 'default',
+                'source_token': os.getenv('LOGTAIL_TOKEN')
+            },
         },
         'loggers': {
             'api_requests': {
-                'handlers': ['default'],
+                'handlers': ['default', 'logtail'],
                 'level': 'INFO',
                 'propagate': False
             },

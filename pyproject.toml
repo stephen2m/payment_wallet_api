@@ -26,6 +26,7 @@ django-celery-beat = "^2.4.0"
 django-structlog = "^4.0.1"
 sentry-sdk = "^1.12.1"
 django-cors-headers = "^3.13.0"
+logtail-python = "^0.1.4"
 
 [tool.poetry.dev-dependencies]
 ipdb = "0.13.11"
