@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import structlog
@@ -25,6 +26,7 @@ class ProcessPaymentNotification(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        payload = json.loads(request.body)
         process_linkpay_webhook_event.delay(request.body, request.headers)
 
         return Response(
