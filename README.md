@@ -14,10 +14,10 @@ To speed up docker builds, you'll want to ensure [buildkit](https://docs.docker.
 For Linux you can set the `DOCKER_BUILDKIT=1` environment variable or add this to your `daemon.json` e.g. for Windows `"features": { "buildkit": true }`
 
 First step will be to build the API container.  To avoid having the Stitch client ID and secret in the docker compose file, you'll need
-to pass those values as build arguments.  Should you also require signed webhooks, ensure you add the value `WEBHOOK_SECRET_KEY` to the build arguments
+to pass those values as build arguments.
 
 ```bash
-docker build --build-arg STITCH_CLIENT_ID=$STITCH_CLIENT_ID --build-arg STITCH_CLIENT_SECRET=$STITCH_CLIENT_SECRET --build-arg WEBHOOK_SECRET_KEY=$WEBHOOK_SECRET_KEY .
+docker build --build-arg STITCH_CLIENT_ID=$STITCH_CLIENT_ID --build-arg STITCH_CLIENT_SECRET=$STITCH_CLIENT_SECRET .
 ```
 
 Start the dev server on port 8081 for local development:

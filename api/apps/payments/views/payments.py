@@ -26,7 +26,15 @@ class ProcessPaymentNotification(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        process_linkpay_webhook_event.delay(request.data, request.headers)
+        payload = json.dumps(request.body.decode('utf-8'))
+        headers = request.headers
+        headers = {
+            'svix-id': request.headers['svix-id'],
+            'svix-timestamp': request.headers['svix-timestamp'],
+            'svix-signature': request.headers['svix-signature'],
+        }
+
+        process_linkpay_webhook_event.delay(payload, headers)
 
         return Response(
             data={'success': 'Webhook received successfully'},
