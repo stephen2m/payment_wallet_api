@@ -36,6 +36,11 @@ def process_linkpay_webhook_event(payload, headers):
             logger.error(message='Received unknown payment request')
             return
 
+        payment_request.paymentrequestevent_set.create(
+            event_type=PaymentRequestEventType.WEBHOOK_PROCESSING.name,
+            event_description='Webhook processing initiated'
+        )
+
         try:
             match payment_status:
                 case StitchLinkPayStatus.COMPLETED.value:
@@ -66,9 +71,20 @@ def process_linkpay_webhook_event(payload, headers):
                         event_type=PaymentRequestEventType.EXPIRED.name
                     )
                 case default:
-                    logger.error(message='Received unknown status in payment request')
+                    msg = 'Received unknown status in payment request'
+                    logger.error(message=msg)
+                    payment_request.paymentrequestevent_set.create(
+                        event_type=PaymentRequestEventType.WEBHOOK_PROCESSING.name,
+                        event_description=msg
+                    )
         except TransitionNotAllowed as e:
-            logger.error(message=f'Error processing payment request: {e}')
+            msg = f'Error processing payment request: {e}'
+            logger.error(message=msg)
+
+            payment_request.paymentrequestevent_set.create(
+                event_type=PaymentRequestEventType.WEBHOOK_PROCESSING.name,
+                event_description=msg
+            )
 
         logger.info(message='Processed deposit to user\'s wallet successfully.')
     except WebhookVerificationError as e:

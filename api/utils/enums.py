@@ -24,6 +24,7 @@ class PaymentRequestEventType(enum.Enum):
     EXPIRED = 'Payment Expired'
     USER_INTERACTION = 'User Interaction Required'
     CONFIRMED = 'Payment Confirmed'
+    WEBHOOK_PROCESSING = 'Webhook Processing'
 
 
 class StitchLinkPayStatus(enum.Enum):
