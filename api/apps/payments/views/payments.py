@@ -26,8 +26,7 @@ class ProcessPaymentNotification(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        payload = json.dumps(request.body.decode('utf-8'))
-        headers = request.headers
+        payload = request.data
         headers = {
             'svix-id': request.headers['svix-id'],
             'svix-timestamp': request.headers['svix-timestamp'],
