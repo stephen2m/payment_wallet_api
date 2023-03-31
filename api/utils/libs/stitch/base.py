@@ -1,5 +1,6 @@
 import logging
 import os
+from random import randrange
 
 import requests
 from django.conf import settings
@@ -12,6 +13,10 @@ from api.utils.libs.stitch.errors import StitchConfigurationIncomplete
 GRAPHQL_ENDPOINT = os.environ.get('STITCH_API_ENDPOINT', 'https://api.stitch.money/graphql')
 CLIENT_TOKEN_ENDPOINT = os.environ.get('STITCH_CLIENT_TOKEN_ENDPOINT', 'https://secure.stitch.money/connect/token')
 REVOKE_TOKEN_ENDPOINT = os.environ.get('STITCH_TOKEN_REVOKE_ENDPOINT', 'https://secure.stitch.money/connect/revocation')
+STITCH_CLIENT_ID = settings.STITCH_CLIENT_ID
+STITCH_CLIENT_SECRET = settings.STITCH_CLIENT_SECRET
+LINKPAY_REDIRECT_URI = settings.LINKPAY_REDIRECT_URI
+LINKPAY_USER_INTERACTION_URI = settings.LINKPAY_USER_INTERACTION_URI
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +26,35 @@ class BaseAPI(object):
     Base class for the Stitch API wrapper
     """
     def __init__(self):
-        if settings.STITCH_CLIENT_ID is None:
-            raise StitchConfigurationIncomplete('Please specify your Stitch client ID in the environment variable STITCH_CLIENT_ID')
+        errors = []
+        if STITCH_CLIENT_ID is None:
+            errors.append({
+                'client_id': 'Please specify your Stitch client ID in the environment variable STITCH_CLIENT_ID'
+            })
 
-        if settings.STITCH_CLIENT_SECRET is None:
-            raise StitchConfigurationIncomplete('Please specify your Stitch client secret in the environment variable STITCH_CLIENT_SECRET')
+        if STITCH_CLIENT_SECRET is None:
+            errors.append({
+                'client_secret': 'Please specify your Stitch client secret in the environment variable STITCH_CLIENT_SECRET'
+            })
 
-        self.client_id = settings.STITCH_CLIENT_ID
-        self.client_secret = settings.STITCH_CLIENT_SECRET
+        if LINKPAY_REDIRECT_URI is None:
+            errors.append({
+                'redirect_uri': 'Please specify the redirect URI to use during linking in the environment variable LINKPAY_REDIRECT_URI'
+            })
+
+        if LINKPAY_USER_INTERACTION_URI is None:
+            errors.append({
+                'user_interaction_redirect': 'Please specify the redirect URI to use during linking in the environment variable LINKPAY_USER_INTERACTION_URI'
+            })
+
+        if errors:
+            raise StitchConfigurationIncomplete(errors)
+
+        self.client_id = STITCH_CLIENT_ID
+        self.client_secret = STITCH_CLIENT_SECRET
         self.token_endpoint = CLIENT_TOKEN_ENDPOINT
         self.token_revoke_endpoint = REVOKE_TOKEN_ENDPOINT
-        self.linkpay_redirect_uri = settings.LINKPAY_REDIRECT_URI
+        self.linkpay_redirect_uri = LINKPAY_REDIRECT_URI
         self.default_headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -41,7 +64,8 @@ class BaseAPI(object):
             return gql(f.read())
 
     def get_client_token(self, scope: str) -> str:
-        access_token = cache.get('access_token')
+        cache_key = f'{self.client_id}_access_token'
+        access_token = cache.get(cache_key)
 
         if access_token:
             logger.debug('access token reused')
@@ -61,11 +85,12 @@ class BaseAPI(object):
             logger.debug(f'Client token with scope {scope} obtained successfully')
         except requests.exceptions.RequestException as err:
             logger.error(f'Error getting client token {err}')
-            raise SystemExit(err)
+            raise StitchClientAuthenticationError(err)
 
         access_token = response.json()['access_token']
-        # the token will expire in 3600 seconds, so expire it in the cache slightly earlier in 57 minutes
-        cache.set('access_token', access_token, 3420)
+        # the token will expire in 3600 seconds, so set a random time to expire it in the cache
+        expiry_sec = randrange(150) + 3300
+        cache.set(cache_key, access_token, expiry_sec)
         logger.debug('access token saved to cache for reuse')
 
         return access_token

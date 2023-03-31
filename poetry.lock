@@ -629,6 +629,18 @@ yaml = ["PyYAML (>=3.10)"]
 zookeeper = ["kazoo (>=1.3.1)"]
 
 [[package]]
+name = "logtail-python"
+version = "0.1.4"
+description = "Logtail.com client library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+msgpack = ">=0.5.6"
+requests = ">=2.18.4"
+
+[[package]]
 name = "matplotlib-inline"
 version = "0.1.6"
 description = "Inline Matplotlib backend for Jupyter"
@@ -659,6 +671,14 @@ python-versions = ">=3.6"
 build = ["twine", "wheel", "blurb"]
 docs = ["sphinx"]
 test = ["pytest (<5.4)", "pytest-cov"]
+
+[[package]]
+name = "msgpack"
+version = "1.0.4"
+description = "MessagePack serializer"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "multidict"
@@ -1050,20 +1070,14 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "43040cdecf3f2c2eff8b651b57277cdab30d5cf686acac3b29fc739fb86832b8"
+content-hash = "a997efe7b89c5820868ca4fe1cfe4ef452b5109ae5fab78f30d1541c4a2de39e"
 
 [metadata.files]
 amqp = []
 appnope = []
-asgiref = [
-    {file = "asgiref-3.5.2-py3-none-any.whl", hash = "sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4"},
-    {file = "asgiref-3.5.2.tar.gz", hash = "sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424"},
-]
+asgiref = []
 asttokens = []
-async-timeout = [
-    {file = "async-timeout-4.0.2.tar.gz", hash = "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15"},
-    {file = "async_timeout-4.0.2-py3-none-any.whl", hash = "sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c"},
-]
+async-timeout = []
 babel = []
 backcall = []
 backoff = []
@@ -1071,10 +1085,7 @@ billiard = []
 celery = []
 certifi = []
 charset-normalizer = []
-click = [
-    {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
-    {file = "click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e"},
-]
+click = []
 click-didyoumean = []
 click-plugins = []
 click-repl = []
@@ -1089,14 +1100,8 @@ django-cors-headers = []
 django-fsm = []
 django-ipware = []
 django-model-utils = []
-django-money = [
-    {file = "django-money-3.0.0.tar.gz", hash = "sha256:4213604537d0e61abb5a7bbb39f0c90bd347a6605c67e96868f5fa9fbbe40278"},
-    {file = "django_money-3.0.0-py3-none-any.whl", hash = "sha256:1f2a760d5da28de8e1beb05bfc66db0c29b4329c7e382cf69f2577315da3ee91"},
-]
-django-nose = [
-    {file = "django-nose-1.4.7.tar.gz", hash = "sha256:a4885cd002d65fd2de96e2bb2563ef477c3fbe207009360c015fca5c3b5561b7"},
-    {file = "django_nose-1.4.7-py2.py3-none-any.whl", hash = "sha256:304adc447ee35b889b733d7106004f98aa401d8387ddcada5d4f2239d86790a9"},
-]
+django-money = []
+django-nose = []
 django-searchable-encrypted-fields = []
 django-structlog = []
 django-timezone-field = []
@@ -1108,24 +1113,19 @@ faker = []
 flake8 = []
 gql = []
 graphql-core = []
-gunicorn = [
-    {file = "gunicorn-20.1.0-py3-none-any.whl", hash = "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e"},
-    {file = "gunicorn-20.1.0.tar.gz", hash = "sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8"},
-]
+gunicorn = []
 idna = []
 ipdb = []
 ipython = []
 jedi = []
 kombu = []
+logtail-python = []
 matplotlib-inline = []
 mccabe = []
 mock = []
+msgpack = []
 multidict = []
-nose = [
-    {file = "nose-1.3.7-py2-none-any.whl", hash = "sha256:dadcddc0aefbf99eea214e0f1232b94f2fa9bd98fa8353711dacb112bfcbbb2a"},
-    {file = "nose-1.3.7-py3-none-any.whl", hash = "sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac"},
-    {file = "nose-1.3.7.tar.gz", hash = "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98"},
-]
+nose = []
 parso = []
 pexpect = []
 pickleshare = []
@@ -1133,36 +1133,24 @@ prompt-toolkit = []
 psycopg2-binary = []
 ptyprocess = []
 pure-eval = []
-py-moneyed = [
-    {file = "py-moneyed-2.0.tar.gz", hash = "sha256:a56e1987deacb2e0eac5904552699a5d3fa251042e528bf2ff74a72359f5e5b3"},
-    {file = "py_moneyed-2.0-py3-none-any.whl", hash = "sha256:1fafe552cfa3cba579d026924c27b070d71b4140e50ef4535e4083b3f4f2473f"},
-]
+py-moneyed = []
 pycodestyle = []
 pycryptodome = []
 pyflakes = []
 pygments = []
 pyjwt = []
 python-crontab = []
-python-dateutil = [
-    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
-    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
-]
+python-dateutil = []
 pytz = []
 redis = []
 requests = []
 requests-toolbelt = []
 sentry-sdk = []
-six = [
-    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
-    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
-]
+six = []
 sqlparse = []
 stack-data = []
 structlog = []
-tomli = [
-    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
-    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
-]
+tomli = []
 traitlets = []
 typing-extensions = []
 tzdata = []
