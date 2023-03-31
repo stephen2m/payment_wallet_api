@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import structlog
@@ -25,7 +26,7 @@ def process_linkpay_webhook_event(payload, headers):
     try:
         webhook_secret = settings.LINKPAY_WEBHOOK_SECRET_KEY
         wh = Webhook(webhook_secret)
-        wh.verify(payload, headers)
+        wh.verify(json.dumps(payload), headers)
 
         try:
             payment_request: PaymentRequest = PaymentRequest.objects.get(transaction_ref=external_ref)
