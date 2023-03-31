@@ -26,8 +26,7 @@ class ProcessPaymentNotification(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        payload = json.loads(request.body)
-        process_linkpay_webhook_event.delay(request.body, request.headers)
+        process_linkpay_webhook_event.delay(request.data, request.headers)
 
         return Response(
             data={'success': 'Webhook received successfully'},
