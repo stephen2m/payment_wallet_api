@@ -4,6 +4,7 @@ from os.path import join
 from distutils.util import strtobool
 import dj_database_url
 import structlog
+from celery.schedules import crontab
 from configurations import Configuration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -259,3 +260,7 @@ class Common(Configuration):
         'accountType': os.environ['STITCH_BENEFICIARY_ACCOUNT_TYPE'],
         'beneficiaryType': os.environ['STITCH_BENEFICIARY_TYPE'],
     }
+
+    # Webhook Config
+    LINKPAY_WEBHOOK_SECRET_KEY = os.getenv('LINKPAY_WEBHOOK_SECRET_KEY')
+    REFUND_WEBHOOK_SECRET_KEY = os.getenv('REFUND_WEBHOOK_SECRET_KEY')

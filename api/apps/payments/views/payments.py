@@ -1,4 +1,3 @@
-import json
 import uuid
 
 import structlog
@@ -10,7 +9,7 @@ from rest_framework.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_400_BAD_R
 
 from api.apps.payments.models import PaymentRequest, BankAccountToken, PaymentRequestEvent
 from api.apps.payments.serializers.payments import InitiateWalletDepositSerializer
-from api.apps.payments.tasks import process_webhook_event
+from api.apps.payments.tasks import process_linkpay_webhook_event
 from api.apps.users.models import User
 from api.utils.code_generator import generate_code
 from api.utils.enums import PaymentRequestEventType
@@ -18,7 +17,6 @@ from api.utils.libs.stitch.base import BaseAPI
 from api.utils.libs.stitch.errors import LinkPayError
 from api.utils.libs.stitch.linkpay.linkpay import LinkPay
 from api.utils.permissions import IsActiveUser
-from api.utils.webhook import get_signature_sections
 
 log = structlog.get_logger('api_requests')
 
@@ -27,18 +25,7 @@ class ProcessPaymentNotification(CreateAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        stitch_signature_header = request.META.get('HTTP_X_STITCH_SIGNATURE', '')
-        logger = log.bind(event='webhook_processing', request_id=str(uuid.uuid4()))
-
-        if not stitch_signature_header:
-            logger.error(message='Skipping processing of event. X-Stitch-Signature not found in request headers.')
-        else:
-            payload = request.data
-            parsed_payload = json.dumps(payload, separators=(',', ':'))
-            parsed_signature = get_signature_sections(stitch_signature_header)
-            hash_input = f'{parsed_signature["t"]}.{parsed_payload}'
-
-            process_webhook_event.delay(stitch_signature_header, payload, hash_input)
+        process_linkpay_webhook_event.delay(request.body, request.headers)
 
         return Response(
             data={'success': 'Webhook received successfully'},

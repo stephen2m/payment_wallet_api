@@ -2,30 +2,31 @@ import uuid
 
 import structlog
 from celery import shared_task
+from django.conf import settings
 from django_fsm import TransitionNotAllowed
+from svix.webhooks import Webhook, WebhookVerificationError
 
 from api.apps.payments.models import PaymentRequest, Wallet, PaymentRequestEvent
 from api.utils.enums import PaymentRequestEventType, StitchLinkPayStatus
-from api.utils.webhook import get_signature_sections, calculate_hmac_signature, compare_signatures
 
 log = structlog.get_logger('api_requests')
 
 
 @shared_task()
-def process_webhook_event(stitch_signature_header, payload, hash_input):
+def process_linkpay_webhook_event(payload, headers):
     webhook_data = payload['data']['client']['paymentInitiations']['node']
     external_ref = webhook_data['externalReference']
-    final_status = webhook_data['status']['__typename']
+    payment_status = webhook_data['status']['__typename']
 
     logger = log.bind(
-        event='webhook_processing', request_id=str(uuid.uuid4()), transaction_ref=external_ref, status=final_status
+        event='webhook_processing', request_id=str(uuid.uuid4()), transaction_ref=external_ref, status=payment_status
     )
 
-    parsed_signature = get_signature_sections(stitch_signature_header)
-    computed_hash = calculate_hmac_signature(hash_input)
-    hashes_match = compare_signatures(computed_hash, parsed_signature['hmac_sha256'])
+    try:
+        webhook_secret = settings.LINKPAY_WEBHOOK_SECRET_KEY
+        wh = Webhook(webhook_secret)
+        wh.verify(payload, headers)
 
-    if hashes_match:
         try:
             payment_request: PaymentRequest = PaymentRequest.objects.get(transaction_ref=external_ref)
         except PaymentRequest.DoesNotExist:
@@ -33,7 +34,7 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
             return
 
         try:
-            match final_status:
+            match payment_status:
                 case StitchLinkPayStatus.COMPLETED.value:
                     payment_request.completed()
                     payment_request.save()
@@ -62,11 +63,11 @@ def process_webhook_event(stitch_signature_header, payload, hash_input):
                         event_type=PaymentRequestEventType.EXPIRED.name
                     )
                 case default:
-                    logger.error(message='Received unknown status for a payment request')
+                    logger.error(message='Received unknown status in payment request')
         except TransitionNotAllowed as e:
             logger.error(message=f'Error processing payment request: {e}')
 
-        logger.info(message='Processing deposit to user\'s wallet completed successfully.')
-    else:
-        logger.error(message='Skipping processing of webhook event. Signature mismatch between X-Stitch-Signature and '
-                             'calculated signature')
+        logger.info(message='Processed deposit to user\'s wallet successfully.')
+    except WebhookVerificationError as e:
+        logger.error(message=f'Could not verify webhook: {e}')
+        return
