@@ -25,8 +25,10 @@ def process_linkpay_webhook_event(payload, headers):
 
     try:
         webhook_secret = settings.LINKPAY_WEBHOOK_SECRET_KEY
+        # we need to ensure the data doesn't have any spaces between values
+        parsed_payload = json.dumps(payload, separators=(',', ':'))
         wh = Webhook(webhook_secret)
-        wh.verify(json.dumps(payload), headers)
+        wh.verify(parsed_payload, headers)
 
         try:
             payment_request: PaymentRequest = PaymentRequest.objects.get(transaction_ref=external_ref)
