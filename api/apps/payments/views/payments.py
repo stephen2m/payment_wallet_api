@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime, timedelta
 
 import structlog
 from django.conf import settings
@@ -98,6 +99,7 @@ class InitiateWalletDeposit(CreateAPIView):
 
             validated_amount = serialized_data.validated_data['amount']
             external_reference = uuid.uuid4()
+            expiry = datetime.utcnow() + datetime.timedelta(minutes=15)
             payment_request_data = {
                 'input': {
                     'amount': {
@@ -106,7 +108,8 @@ class InitiateWalletDeposit(CreateAPIView):
                     },
                     'payerReference': payer_ref,
                     'beneficiaryReference': beneficiary_ref,
-                    'externalReference': f'{external_reference}'
+                    'externalReference': f'{external_reference}',
+                    'expireAt': expiry.isoformat(sep='T', timespec='seconds')
                 }
             }
 
